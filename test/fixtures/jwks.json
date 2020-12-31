@@ -1,0 +1,21 @@
+{
+  "keys": [
+    {
+      "key_ops": ["sign"],
+      "kty": "EC",
+      "x": "c02Y20oTtmiOnuxpfvuMdmAgaaqbU_V758QpxK8Ontg",
+      "y": "HO-BFbHKItFCol1qWZHmkM-Tf53Oh4T11jogcLPNvVI",
+      "d": "xxKV8Q9dGrnG5245s972ks_LD9Xdt1FteoNvyg-El1o",
+      "crv": "P-256",
+      "kid": "86d9DMYVV4EOxOO8SOcdy4ipWuzeauhItIcdsRs7stk",
+      "alg": "ES256"
+    },
+    {
+      "key_ops": ["sign", "verify"],
+      "kty": "oct",
+      "k": "RHBC04u6kOLNuvMlE992leDSfMY0w6M8qXAX9HdVemM",
+      "alg": "HS256",
+      "kid": "NiFCZ_AVW0uiurOVQqaS908S8nCdWGakyZWCeL95S3k"
+    }
+  ]
+}
