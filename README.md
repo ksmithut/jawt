@@ -56,7 +56,7 @@ async function configureApp () {
 
 # Comparison to other Libraries
 
-|                | jsonwebtoken | jose | jawk |
+|                | jsonwebtoken | jose | jawt |
 | -------------- | ------------ | ---- | ---- |
 | Sign           | ✔            | ✔    | ✔    |
 | Verify         | ✔            | ✔    | ✔    |
