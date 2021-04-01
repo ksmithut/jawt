@@ -22,18 +22,22 @@ import {
 import { isPlainObject } from './lib/utils/types.js'
 
 /**
+ * @typedef {object} SignOptions
+ * @property {Date} [now] Date to use for all clock calculations
+ * @property {string} [issuer] identifies the principal that issued the JWT
+ * @property {string} [subject] identifies the principal that is the subject of the JWT
+ * @property {string|string[]} [audience] identifies the recipients that the JWT is intended for
+ * @property {Date|number} [expiresAt]
+ * @property {number} [expiresIn]
+ * @property {Date|number} [notBefore] identifies the time before which the JWT MUST NOT be accepted for processing
+ * @property {boolean|Date|number} [issuedAt=true] identifies the time at which the JWT was issued
+ * @property {string} [jwtId] provides a unique identifier for the JWT
+ */
+
+/**
  * @param {{[key: string]: any}} payload
  * @param {import('./key-store').KeyStore} keyStore
- * @param {object} [options]
- * @param {Date} [options.now] Date to use for all clock calculations
- * @param {string} [options.issuer] identifies the principal that issued the JWT
- * @param {string} [options.subject] identifies the principal that is the subject of the JWT
- * @param {string|string[]} [options.audience] identifies the recipients that the JWT is intended for
- * @param {Date|number} [options.expiresAt]
- * @param {number} [options.expiresIn]
- * @param {Date|number} [options.notBefore] identifies the time before which the JWT MUST NOT be accepted for processing
- * @param {boolean|Date|number} [options.issuedAt=true] identifies the time at which the JWT was issued
- * @param {string} [options.jwtId] provides a unique identifier for the JWT
+ * @param {SignOptions} [options]
  */
 export async function sign (
   payload,
@@ -94,16 +98,20 @@ function decode (token) {
 }
 
 /**
+ * @typedef {object} VerifyOptions
+ * @property {Date} [now] Date to use for all clock calculations
+ * @property {string|string[]} [issuer]
+ * @property {string} [subject]
+ * @property {string|RegExp|(string|RegExp)[]} [audience]
+ * @property {string} [jwtId]
+ * @property {number} [clockTolerance]
+ * @property {number} [maxAge]
+ */
+
+/**
  * @param {string} token
  * @param {import('./key-store').KeyStore} keyStore
- * @param {object} [options]
- * @param {Date} [options.now] Date to use for all clock calculations
- * @param {string|string[]} [options.issuer]
- * @param {string} [options.subject]
- * @param {string|RegExp|(string|RegExp)[]} [options.audience]
- * @param {string} [options.jwtId]
- * @param {number} [options.clockTolerance]
- * @param {number} [options.maxAge]
+ * @param {VerifyOptions} [options]
  */
 export async function verify (
   token,
