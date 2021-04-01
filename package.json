@@ -22,17 +22,16 @@
     "lint": "prettier-standard --check --lint && tsc --noEmit",
     "build": "tsc --emitDeclarationOnly",
     "prepublish": "tsc --emitDeclarationOnly",
-    "test": "tap --no-esm --100"
+    "test": "tap --100"
   },
   "dependencies": {},
   "devDependencies": {
-    "@types/node": "^14.14.22",
-    "husky": "^4.3.8",
+    "@arkweid/lefthook": "^0.7.2",
+    "@types/node": "^14.14.37",
     "jsonwebtoken": "^8.5.1",
-    "lint-staged": "^10.5.3",
     "prettier-standard": "^16.4.1",
     "standard": "^16.0.3",
-    "tap": "^14.11.0",
-    "typescript": "^4.1.3"
+    "tap": "^15.0.1",
+    "typescript": "^4.2.3"
   }
 }

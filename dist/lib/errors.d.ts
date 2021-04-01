@@ -6,13 +6,10 @@ export class UnsupportedAlgorithm extends Error {
     code: string;
 }
 export class InvalidModulusLength extends Error {
+    constructor();
     code: string;
 }
 export class UnsupportedKeyType extends Error {
-    /**
-     * @param {string} [kty]
-     */
-    constructor(kty?: string | undefined);
     code: string;
 }
 export class JsonWebTokenError extends Error {
@@ -24,14 +21,19 @@ export class JsonWebTokenError extends Error {
     code: string;
 }
 export class MalformedJWT extends JsonWebTokenError {
+    constructor();
 }
 export class InvalidAlgorithm extends JsonWebTokenError {
+    constructor();
 }
 export class InvalidKeyId extends JsonWebTokenError {
+    constructor();
 }
 export class AlgorithmMismatch extends JsonWebTokenError {
+    constructor();
 }
 export class InvalidSignature extends JsonWebTokenError {
+    constructor();
 }
 export class InvalidClaim extends JsonWebTokenError {
     /**
@@ -40,16 +42,23 @@ export class InvalidClaim extends JsonWebTokenError {
     constructor(claim: string);
 }
 export class NotBefore extends JsonWebTokenError {
+    constructor();
 }
 export class TokenExpired extends JsonWebTokenError {
+    constructor();
 }
 export class AgeNotAccepted extends JsonWebTokenError {
+    constructor();
 }
 export class IssuerNotAccepted extends JsonWebTokenError {
+    constructor();
 }
 export class AudienceNotAccepted extends JsonWebTokenError {
+    constructor();
 }
 export class SubjectNotAccepted extends JsonWebTokenError {
+    constructor();
 }
 export class JwtIdNotAccepted extends JsonWebTokenError {
+    constructor();
 }

@@ -17,7 +17,7 @@
  */
 export function fromCryptoKey(cryptoKey: CryptoKey, options: {
     alg: import('./lib/jwa').JWAlgorithm;
-    kid: string | undefined;
+    kid?: string | undefined;
 }): Promise<Key>;
 /**
  * @param {JsonWebKey & { kid?: string }} jwk

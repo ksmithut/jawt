@@ -13,7 +13,7 @@ export function generateHS(length: 256 | 384 | 512): Promise<CryptoKey>;
  * @param {number} [options.modulusLength]
  */
 export function generatePS(length: 256 | 384 | 512, options: {
-    modulusLength: number | undefined;
+    modulusLength?: number | undefined;
 }): Promise<CryptoKey>;
 /**
  * @param {256 | 384 | 512} length
@@ -21,7 +21,7 @@ export function generatePS(length: 256 | 384 | 512, options: {
  * @param {number} [options.modulusLength]
  */
 export function generateRS(length: 256 | 384 | 512, options: {
-    modulusLength: number | undefined;
+    modulusLength?: number | undefined;
 }): Promise<CryptoKey>;
 /**
  * @param {string} curve
@@ -46,13 +46,13 @@ export function subtleDSA(alg: string): {
     namedCurve: string;
     saltLength?: undefined;
 };
-export type HSAlgorithm = "HS256" | "HS384" | "HS512";
-export type RSAlgorithm = "RS256" | "RS384" | "RS512";
-export type PSAlgorithm = "PS256" | "PS384" | "PS512";
+export type HSAlgorithm = 'HS256' | 'HS384' | 'HS512';
+export type RSAlgorithm = 'RS256' | 'RS384' | 'RS512';
+export type PSAlgorithm = 'PS256' | 'PS384' | 'PS512';
 /**
  * TODO support 'ES256K'
  * TODO {'EdDSA'} EdDSAAlgorithm
  * TODO {'Ed25519' | 'Ed448'} EdDSACurve
  */
-export type ESAlgorithm = "ES256" | "ES384" | "ES512";
-export type JWAlgorithm = "HS256" | "HS384" | "HS512" | "RS256" | "RS384" | "RS512" | "PS256" | "PS384" | "PS512" | "ES256" | "ES384" | "ES512";
+export type ESAlgorithm = 'ES256' | 'ES384' | 'ES512';
+export type JWAlgorithm = HSAlgorithm | RSAlgorithm | PSAlgorithm | ESAlgorithm;

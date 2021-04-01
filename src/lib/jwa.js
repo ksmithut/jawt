@@ -42,7 +42,11 @@ export function isAlgorithm (alg) {
  * @param {number} [modulusLength=2048]
  */
 function getModulusLength (modulusLength = 2048) {
-  if (typeof modulusLength !== 'number' || modulusLength < 2048) {
+  if (
+    typeof modulusLength !== 'number' ||
+    isNaN(modulusLength) ||
+    modulusLength < 2048
+  ) {
     throw new InvalidModulusLength()
   }
   return modulusLength
