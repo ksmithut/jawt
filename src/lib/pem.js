@@ -1,4 +1,4 @@
-import webcrypto from './webcrypto.js'
+import webcrypto from '#webcrypto'
 import { base64encode } from './utils/encoding.js'
 import { splitEvery } from './utils/split-every.js'
 

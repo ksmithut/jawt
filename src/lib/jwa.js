@@ -1,4 +1,4 @@
-import webcrypto from './webcrypto.js'
+import webcrypto from '#webcrypto'
 import { InvalidModulusLength, UnsupportedAlgorithm } from './errors.js'
 
 /**

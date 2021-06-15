@@ -15,16 +15,14 @@ export function arrayBufferToString (arrayBuffer) {
 }
 
 /** @type {(buffer: ArrayBuffer) => string} */
-export const base64encode =
-  typeof btoa === 'function'
-    ? buffer => btoa(arrayBufferToString(buffer))
-    : buffer => Buffer.from(buffer).toString('base64')
+export function base64encode (buffer) {
+  return btoa(arrayBufferToString(buffer))
+}
 
 /** @type {(string: string) => ArrayBuffer} */
-export const base64decode =
-  typeof atob === 'function'
-    ? string => stringToArrayBuffer(atob(string))
-    : string => Uint8Array.from(Buffer.from(string, 'base64')).buffer
+export function base64decode (string) {
+  return stringToArrayBuffer(atob(string))
+}
 
 /**
  * @param {ArrayBuffer|string} buffer

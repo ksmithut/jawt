@@ -1,4 +1,4 @@
-import webcrypto from './webcrypto.js'
+import webcrypto from '#webcrypto'
 import { stringToArrayBuffer, base64urlEncode } from './utils/encoding.js'
 import { UnsupportedKeyType } from './errors.js'
 

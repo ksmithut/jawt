@@ -109,6 +109,33 @@ function decode (token) {
  */
 
 /**
+ * @typedef {object} VerifyResultSuccess
+ * @property {true} success
+ * @property {{[key: string]: unknown}} payload
+ */
+
+/**
+ * @typedef {object} VerifyResultError
+ * @property {false} success
+ * @property {import('./lib/errors').JsonWebTokenError} error
+ */
+
+/**
+ * @param {string} token
+ * @param {import('./key-store').KeyStore} keyStore
+ * @param {VerifyOptions} [options]
+ * @returns {Promise<VerifyResultSuccess | VerifyResultError>}
+ */
+export async function verifySafe (token, keyStore, options) {
+  try {
+    const payload = await verify(token, keyStore, options)
+    return { success: true, payload }
+  } catch (error) {
+    return { success: false, error }
+  }
+}
+
+/**
  * @param {string} token
  * @param {import('./key-store').KeyStore} keyStore
  * @param {VerifyOptions} [options]
@@ -169,11 +196,7 @@ async function findKeyAndVerify (header, data, signature, keyStore) {
     if (header.alg !== possibleKey.alg) continue
     const validSignature = await possibleKey
       .verify(data, signature)
-      .catch(err => {
-        console.log(err)
-        return false
-      })
-    console.log()
+      .catch(() => false)
     if (validSignature) return
   }
   throw new InvalidSignature()

@@ -1,5 +1,4 @@
-// TODO figure out the best way to do a browser split here.
-
+// This should be imported via #webcrypto
 import crypto from 'crypto'
 
 /** @type {Crypto} */

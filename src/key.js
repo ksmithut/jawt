@@ -1,4 +1,4 @@
-import webcrypto from './lib/webcrypto.js'
+import webcrypto from '#webcrypto'
 import { base64urlDecode, stringToArrayBuffer } from './lib/utils/encoding.js'
 import {
   cryptoKeyToJWK,

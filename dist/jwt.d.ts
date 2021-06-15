@@ -29,6 +29,23 @@ export function sign(payload: {
  * @property {number} [maxAge]
  */
 /**
+ * @typedef {object} VerifyResultSuccess
+ * @property {true} success
+ * @property {{[key: string]: unknown}} payload
+ */
+/**
+ * @typedef {object} VerifyResultError
+ * @property {false} success
+ * @property {import('./lib/errors').JsonWebTokenError} error
+ */
+/**
+ * @param {string} token
+ * @param {import('./key-store').KeyStore} keyStore
+ * @param {VerifyOptions} [options]
+ * @returns {Promise<VerifyResultSuccess | VerifyResultError>}
+ */
+export function verifySafe(token: string, keyStore: import('./key-store').KeyStore, options?: VerifyOptions | undefined): Promise<VerifyResultSuccess | VerifyResultError>;
+/**
  * @param {string} token
  * @param {import('./key-store').KeyStore} keyStore
  * @param {VerifyOptions} [options]
@@ -79,4 +96,14 @@ export type VerifyOptions = {
     jwtId?: string | undefined;
     clockTolerance?: number | undefined;
     maxAge?: number | undefined;
+};
+export type VerifyResultSuccess = {
+    success: true;
+    payload: {
+        [key: string]: unknown;
+    };
+};
+export type VerifyResultError = {
+    success: false;
+    error: import('./lib/errors').JsonWebTokenError;
 };
