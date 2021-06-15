@@ -7,18 +7,18 @@ This is a dependency-less implementation of
 # Reasoning
 
 This was started as a project for me to dive deep into JSON Web Tokens and the
-cryptography involved. This is not recommended for production usage! I am fairly
-new to cryptography and should really be left to the experts. If this library
-gets peer reviewed by experts and sees a decent amount of "production" usage,
-only then will I stop discouraging the usage of this library. Even if that's the
-case, I would still recommend you use a more fleshed out library like
-[jsonwebtoken](https://github.com/auth0/node-jsonwebtoken) or
+cryptography involved. This is not currently recommended for production usage!
+I am fairly new to cryptography and should really be left to the experts. If
+this library gets peer reviewed by experts and sees a decent amount of
+"production" usage, only then will I stop discouraging the usage of this
+library. Even if that's the case, I would still recommend you use a more fleshed
+out library like [jsonwebtoken](https://github.com/auth0/node-jsonwebtoken) or
 [jose](https://github.com/panva/jose). Much inspiration was taken from both of
 these libraries.
 
 # Requirements
 
-This requires at least Node.js v15.0.0 because it utilizes the
+This requires at least Node.js v15.13.0 because it utilizes the
 [WebCrypto](https://nodejs.org/dist/latest-v15.x/docs/api/webcrypto.html)
 implementation introduced in Node.js v15.0.0. At the time of writing this, it
 also says this API is experimental (Stability 1), which states:
@@ -148,7 +148,7 @@ const jwks = keyStore.jwks(true)
 const duplicateKeyStore = await fromJWKS(jwks)
 ```
 
-## `jwk.sign(payload, keyStore, options) => Promise<string>`
+## `jwt.sign(payload, keyStore, options) => Promise<string>`
 
 Sign a payload into a JWT formated string.
 
@@ -211,7 +211,7 @@ const tokenWithOptions = await jwt.sign({ userId: '123' }, keyStore, {
 })
 ```
 
-## `jwk.verify(token, keyStore, options) => Promise<payload>`
+## `jwt.verify(token, keyStore, options) => Promise<payload>`
 
 Validates a token against the keys in the keystore and the expected claims. If
 it fails the signature or any of the claims, it will reject the promise with an
@@ -285,6 +285,40 @@ const payload3 = await jwt.verify(token3, newKeyStore, {
   // claim doesn't exist, then it will fail validation
   maxAge: 60
 })
+```
+
+## `jwt.verifySafe(token, keyStore, options) => Promise<result>`
+
+This is the same as `jwt.verify()`, but instead of throwing an error, it returns
+you an object that is either `{ success: true, payload }` or
+`{ success: false, error }`. It should be TypeScript friendly, so if you check
+`result.success` in an if statement, you'll be guaranteed the `.payload` or
+`.error` depending on what you checked for.
+
+```js
+import { setTimeout } from 'timers/promises'
+import { jwt, createKeyStore, generate, TokenExpired } from 'jawt'
+
+const key = await generate('HS256')
+const keyStore = createKeyStore([key])
+
+const token = await jwt.sign({}, keyStore, {
+  expiresIn: 1
+})
+
+await setTimeout(2 * 1000)
+
+const result = await jwt.verifySafe(token, keyStore)
+
+if (result.success === false) {
+  if (result.error instanceof TokenExpired) {
+    console.error('Token Expired')
+  } else {
+    console.log('Other token error', result.error.code)
+  }
+} else {
+  console.log('success', result.payload)
+}
 ```
 
 # Error Codes
