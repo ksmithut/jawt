@@ -28,7 +28,7 @@ tap.test('jwt', async tap => {
   await tap.test('can verify jwt signed by external library', async () => {
     const now = new Date(1609025188322)
     const token = await signExternal(
-      { iat: Math.round(now / 1000) },
+      { iat: Math.round(now.getTime() / 1000) },
       keyStore.primaryKey()
     )
     assert.deepStrictEqual(await jwt.verify(token, keyStore), {
@@ -39,7 +39,7 @@ tap.test('jwt', async tap => {
   await tap.test('tries both keys when kid is not present', async () => {
     const now = new Date(1609025188322)
     const token = await signExternal(
-      { iat: Math.round(now / 1000) },
+      { iat: Math.round(now.getTime() / 1000) },
       keyStore.keys()[1],
       { keyid: 'wrongkid' }
     )
