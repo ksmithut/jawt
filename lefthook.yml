@@ -3,7 +3,7 @@ pre-commit:
   commands:
     formatter:
       glob: '*.*'
-      run: yarn prettier-standard --lint {staged\_files}
+      run: yarn prettier-standard --lint {staged_files}
     types:
       glob: '*.{js,json}'
       run: yarn tsc --emitDeclarationOnly
