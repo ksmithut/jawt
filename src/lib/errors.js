@@ -46,6 +46,16 @@ export class MalformedJWT extends JsonWebTokenError {
   }
 }
 
+export class InvalidJSON extends JsonWebTokenError {
+  /**
+   * @param {'header'|'payload'} type
+   */
+  constructor (type) {
+    super('INVALID_JSON', `Invalid JSON in ${type}`)
+    this.type = type
+  }
+}
+
 export class InvalidAlgorithm extends JsonWebTokenError {
   constructor () {
     super('INVALID_ALGORITHM', 'Invalid alg in token header')
@@ -79,6 +89,7 @@ export class InvalidClaim extends JsonWebTokenError {
    */
   constructor (claim) {
     super('INVALID_CLAIM', `Invalid claim: ${claim}`)
+    this.claim = claim
   }
 }
 
@@ -96,7 +107,7 @@ export class TokenExpired extends JsonWebTokenError {
 
 export class AgeNotAccepted extends JsonWebTokenError {
   constructor () {
-    super('AGE_NOT_ACCEPTABLE', 'Token is too old')
+    super('AGE_NOT_ACCEPTED', 'Token is too old')
   }
 }
 

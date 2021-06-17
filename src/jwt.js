@@ -17,7 +17,8 @@ import {
   AgeNotAccepted,
   AudienceNotAccepted,
   SubjectNotAccepted,
-  JwtIdNotAccepted
+  JwtIdNotAccepted,
+  InvalidJSON
 } from './lib/errors.js'
 import { isPlainObject } from './lib/utils/types.js'
 
@@ -78,6 +79,18 @@ export async function sign (
 }
 
 /**
+ * @param {string} string
+ * @param {'header'|'payload'} type
+ */
+function JSONParse (string, type) {
+  try {
+    return JSON.parse(string)
+  } catch {
+    throw new InvalidJSON(type)
+  }
+}
+
+/**
  * @param {string} token
  * @returns {[{[key: string]: unknown}, {[key: string]: unknown}, ArrayBuffer, ArrayBuffer]}
  */
@@ -85,9 +98,15 @@ function decode (token) {
   const parts = token.split('.')
   if (parts.length !== 3) throw new MalformedJWT()
   const [rawHeader, rawPayload, rawSignature] = parts
-  const header = JSON.parse(arrayBufferToString(base64urlDecode(rawHeader)))
+  const header = JSONParse(
+    arrayBufferToString(base64urlDecode(rawHeader)),
+    'header'
+  )
   if (!isPlainObject(header)) throw new MalformedJWT()
-  const payload = JSON.parse(arrayBufferToString(base64urlDecode(rawPayload)))
+  const payload = JSONParse(
+    arrayBufferToString(base64urlDecode(rawPayload)),
+    'payload'
+  )
   if (!isPlainObject(payload)) throw new MalformedJWT()
   return [
     header,
@@ -196,7 +215,7 @@ async function findKeyAndVerify (header, data, signature, keyStore) {
     if (header.alg !== possibleKey.alg) continue
     const validSignature = await possibleKey
       .verify(data, signature)
-      .catch(() => false)
+      .catch(/* istanbul ignore next */ () => false)
     if (validSignature) return
   }
   throw new InvalidSignature()

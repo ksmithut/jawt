@@ -2,7 +2,7 @@
  * @typedef {object} Key
  * @property {string} kid
  * @property {import('./lib/jwa').JWAlgorithm} alg
- * @property {(priv?: boolean) => JsonWebKey} jwk
+ * @property {(priv?: boolean) => JsonWebKey & { kid: string }} jwk
  * @property {() => Promise<ArrayBuffer>} signingKey
  * @property {() => Promise<ArrayBuffer>} verifyingKey
  * @property {(data: ArrayBuffer) => Promise<ArrayBuffer>} sign
@@ -28,7 +28,9 @@ export function fromJWK(jwk: JsonWebKey & {
 export type Key = {
     kid: string;
     alg: import('./lib/jwa').JWAlgorithm;
-    jwk: (priv?: boolean | undefined) => JsonWebKey;
+    jwk: (priv?: boolean | undefined) => JsonWebKey & {
+        kid: string;
+    };
     signingKey: () => Promise<ArrayBuffer>;
     verifyingKey: () => Promise<ArrayBuffer>;
     sign: (data: ArrayBuffer) => Promise<ArrayBuffer>;

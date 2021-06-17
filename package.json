@@ -29,11 +29,21 @@
     "lint": "prettier-standard --check --lint && tsc --noEmit",
     "build": "tsc --emitDeclarationOnly",
     "prepublish": "tsc --emitDeclarationOnly",
-    "test": "tap --100"
+    "test": "tap --reporter=spec",
+    "test:coverage": "tap --coverage-report=html"
+  },
+  "tap": {
+    "check-coverage": true,
+    "node-arg": [
+      "--no-warnings",
+      "--experimental-loader",
+      "@istanbuljs/esm-loader-hook"
+    ]
   },
   "dependencies": {},
   "devDependencies": {
     "@arkweid/lefthook": "^0.7.6",
+    "@istanbuljs/esm-loader-hook": "^0.1.2",
     "@types/node": "^15.12.2",
     "jsonwebtoken": "^8.5.1",
     "prettier-standard": "^16.4.1",

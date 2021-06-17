@@ -14,7 +14,7 @@ import { subtleDSA, isAlgorithm } from './lib/jwa.js'
  * @typedef {object} Key
  * @property {string} kid
  * @property {import('./lib/jwa').JWAlgorithm} alg
- * @property {(priv?: boolean) => JsonWebKey} jwk
+ * @property {(priv?: boolean) => JsonWebKey & { kid: string }} jwk
  * @property {() => Promise<ArrayBuffer>} signingKey
  * @property {() => Promise<ArrayBuffer>} verifyingKey
  * @property {(data: ArrayBuffer) => Promise<ArrayBuffer>} sign

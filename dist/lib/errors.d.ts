@@ -23,6 +23,13 @@ export class JsonWebTokenError extends Error {
 export class MalformedJWT extends JsonWebTokenError {
     constructor();
 }
+export class InvalidJSON extends JsonWebTokenError {
+    /**
+     * @param {'header'|'payload'} type
+     */
+    constructor(type: 'header' | 'payload');
+    type: "header" | "payload";
+}
 export class InvalidAlgorithm extends JsonWebTokenError {
     constructor();
 }
@@ -40,6 +47,7 @@ export class InvalidClaim extends JsonWebTokenError {
      * @param {string} claim
      */
     constructor(claim: string);
+    claim: string;
 }
 export class NotBefore extends JsonWebTokenError {
     constructor();
