@@ -41,11 +41,11 @@ this. For now, you should by able to use `import('jawt').then(jawt => {})`.
 # Basic Usage
 
 ```js
-import { fromJWKS, jwt } from 'jawt'
+import { createKeyStoreFromJWKS, jwt } from 'jawt'
 
 async function configureApp () {
   // Then import the keys
-  const keyStore = await fromJWKS(JSON.parse(process.env.JWKS))
+  const keyStore = await createKeyStoreFromJWKS(JSON.parse(process.env.JWKS))
   // You can get the public keys in `jwks` format to use for a
   // `/.well-known/jwks.json` endpoint
   console.log(keyStore.jwks())
@@ -129,12 +129,12 @@ keyStore.jwks() // { keys: [] } returns the public version of the keys in JWK fo
 keyStore.jwks(true) // {keys: [] } returns the private version of the keys in JWK format
 ```
 
-## `fromJWKs(JWKS) => Promise<KeyStore>`
+## `createKeyStoreFromJWKS(JWKS) => Promise<KeyStore>`
 
 Creates a KeyStore from a JSON Web Key Set
 
 ```js
-import { generate, createKeyStore, fromJWKS } from 'jawt'
+import { generate, createKeyStore, createKeyStoreFromJWKS } from 'jawt'
 
 const keys = await Promise.all([generate('ES512'), generate('HS256')])
 const keyStore = createKeyStore(keys)
@@ -146,7 +146,7 @@ const jwks = keyStore.jwks(true)
 // Then reimport it
 // const jwks = JSON.parse(process.env.JWKS)
 
-const duplicateKeyStore = await fromJWKS(jwks)
+const duplicateKeyStore = await createKeyStoreFromJWKS(jwks)
 ```
 
 ## `jwt.sign(payload, keyStore, options) => Promise<string>`
@@ -154,9 +154,9 @@ const duplicateKeyStore = await fromJWKS(jwks)
 Sign a payload into a JWT formated string.
 
 ```js
-import { fromJWKS, jwt } from 'jawt'
+import { createKeyStoreFromJWKS, jwt } from 'jawt'
 
-const keyStore = await fromJWKS(JSON.parse(process.env.JWKS))
+const keyStore = await createKeyStoreFromJWKS(JSON.parse(process.env.JWKS))
 const token = await jwt.sign({}, keyStore)
 
 const tokenWithOptions = await jwt.sign({ userId: '123' }, keyStore, {
@@ -298,7 +298,7 @@ you an object that is either `{ success: true, payload }` or
 
 ```js
 import { setTimeout } from 'timers/promises'
-import { jwt, createKeyStore, generate, TokenExpired } from 'jawt'
+import { jwt, createKeyStore, generate, errors } from 'jawt'
 
 const key = await generate('HS256')
 const keyStore = createKeyStore([key])
@@ -312,7 +312,7 @@ await setTimeout(2 * 1000)
 const result = await jwt.verifySafe(token, keyStore)
 
 if (result.success === false) {
-  if (result.error instanceof TokenExpired) {
+  if (result.error instanceof errors.TokenExpired) {
     console.error('Token Expired')
   } else {
     console.log('Other token error', result.error.code)
