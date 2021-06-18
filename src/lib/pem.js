@@ -25,6 +25,7 @@ export async function cryptoKeyToPEM (cryptoKey) {
         ),
         '-----END PUBLIC KEY-----'
       ].join('\n')
+    /* istanbul ignore next */
     default:
       throw new Error(`Unknown type: "${cryptoKey.type}"`)
   }

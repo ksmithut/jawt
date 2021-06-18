@@ -6,6 +6,23 @@ export class UnsupportedAlgorithm extends Error {
     super(`Unsupported algorithm: "${algorithm}"`)
     Error.captureStackTrace(this, this.constructor)
     this.code = 'UNSUPPORTED_JWA_ALGORITHM'
+    this.algorithm = algorithm
+  }
+}
+
+export class InvalidSigningKey extends Error {
+  constructor () {
+    super('Given CryptoKey is not a signing key')
+    Error.captureStackTrace(this, this.constructor)
+    this.code = 'INVALID_SIGNING_KEY'
+  }
+}
+
+export class MissingAlgorithm extends Error {
+  constructor () {
+    super('Missing alg property')
+    Error.captureStackTrace(this, this.constructor)
+    this.code = 'MISSING_ALGORITHM'
   }
 }
 
@@ -25,6 +42,14 @@ export class UnsupportedKeyType extends Error {
     super(`Unsupported jwk kty: "${kty}"`)
     Error.captureStackTrace(this, this.constructor)
     this.code = 'UNSUPPORTED_JWK_KTY'
+  }
+}
+
+export class InvalidKeyStore extends TypeError {
+  constructor () {
+    super('Invalid KeyStore')
+    Error.captureStackTrace(this, this.constructor)
+    this.code = 'INVALID_KEY_STORE'
   }
 }
 

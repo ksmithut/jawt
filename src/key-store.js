@@ -1,4 +1,8 @@
-import { fromJWK } from './key.js'
+import { createKeyFromJWK, isKey } from './key.js'
+
+/**
+ * @typedef {import('./key').Key} Key
+ */
 
 /**
  * @typedef {object} KeyStore
@@ -9,16 +13,37 @@ import { fromJWK } from './key.js'
  */
 
 /**
+ * @param {Key[]} keys
+ * @returns {keys is Key[]}
+ */
+function isArrayOfKeys (keys) {
+  if (!Array.isArray(keys)) return false
+  return keys.every(key => isKey(key))
+}
+
+const keyStoreSet = new WeakSet()
+
+/**
+ * @param {KeyStore} keyStore
+ * @returns {keyStore is KeyStore}
+ */
+export function isKeyStore (keyStore) {
+  return keyStoreSet.has(keyStore)
+}
+
+/**
  * @param {import('./key').Key[]} keys
  * @returns {KeyStore}
  */
 export function createKeyStore (keys) {
-  if (!Array.isArray(keys)) throw new TypeError('keys must be an array')
+  if (!isArrayOfKeys(keys)) throw new TypeError('keys must be an array of keys')
+  keys = keys.slice()
   if (keys.length === 0) {
     throw new ReferenceError('Key store must have at lest 1 key')
   }
   const keysByKid = new Map(keys.map(key => [key.kid, key]))
-  return {
+  /** @type {KeyStore} */
+  const keyStore = Object.freeze({
     primaryKey () {
       return keys[0]
     },
@@ -31,12 +56,16 @@ export function createKeyStore (keys) {
     jwks (priv = false) {
       return { keys: keys.map(key => key.jwk(priv)) }
     }
-  }
+  })
+  keyStoreSet.add(keyStore)
+  return keyStore
 }
 
 /**
  * @param {{ keys: JsonWebKey[] }} jwks
  */
-export async function fromJWKS (jwks) {
-  return createKeyStore(await Promise.all(jwks.keys.map(fromJWK)))
+export async function createKeyStoreFromJWKS (jwks) {
+  return createKeyStore(
+    await Promise.all(jwks.keys.map(key => createKeyFromJWK(key)))
+  )
 }

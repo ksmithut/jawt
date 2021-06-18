@@ -4,12 +4,25 @@ export class UnsupportedAlgorithm extends Error {
      */
     constructor(algorithm: string);
     code: string;
+    algorithm: string;
+}
+export class InvalidSigningKey extends Error {
+    constructor();
+    code: string;
+}
+export class MissingAlgorithm extends Error {
+    constructor();
+    code: string;
 }
 export class InvalidModulusLength extends Error {
     constructor();
     code: string;
 }
 export class UnsupportedKeyType extends Error {
+    code: string;
+}
+export class InvalidKeyStore extends TypeError {
+    constructor();
     code: string;
 }
 export class JsonWebTokenError extends Error {

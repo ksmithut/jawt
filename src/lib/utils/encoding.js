@@ -3,6 +3,7 @@
  * @returns {ArrayBuffer}
  */
 export function stringToArrayBuffer (str) {
+  /* istanbul ignore next */
   return Uint8Array.from(str, c => c.codePointAt(0) ?? 0).buffer
 }
 

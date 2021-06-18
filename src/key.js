@@ -1,5 +1,11 @@
 import webcrypto from '#webcrypto'
 import { base64urlDecode, stringToArrayBuffer } from './lib/utils/encoding.js'
+import { clone } from './lib/utils/clone.js'
+import {
+  UnsupportedAlgorithm,
+  MissingAlgorithm,
+  InvalidSigningKey
+} from './lib/errors.js'
 import {
   cryptoKeyToJWK,
   jwkToCryptoKey,
@@ -15,11 +21,21 @@ import { subtleDSA, isAlgorithm } from './lib/jwa.js'
  * @property {string} kid
  * @property {import('./lib/jwa').JWAlgorithm} alg
  * @property {(priv?: boolean) => JsonWebKey & { kid: string }} jwk
- * @property {() => Promise<ArrayBuffer>} signingKey
- * @property {() => Promise<ArrayBuffer>} verifyingKey
+ * @property {() => Promise<ArrayBuffer | null>} signingKey
+ * @property {() => Promise<ArrayBuffer | null>} verifyingKey
  * @property {(data: ArrayBuffer) => Promise<ArrayBuffer>} sign
  * @property {(data: ArrayBuffer, signature: ArrayBuffer) => Promise<boolean>} verify
  */
+
+const keySet = new WeakSet()
+
+/**
+ * @param {Key} key
+ * @returns {key is Key}
+ */
+export function isKey (key) {
+  return keySet.has(key)
+}
 
 /**
  * @param {CryptoKey} cryptoKey
@@ -28,7 +44,7 @@ import { subtleDSA, isAlgorithm } from './lib/jwa.js'
  * @param {string} [options.kid]
  * @returns {Promise<Key>}
  */
-export async function fromCryptoKey (cryptoKey, options) {
+export async function createKeyfromCryptoKey (cryptoKey, options) {
   const algorithm = options.alg
   const dsa = subtleDSA(algorithm)
   const jwk = await cryptoKeyToJWK(cryptoKey)
@@ -42,7 +58,8 @@ export async function fromCryptoKey (cryptoKey, options) {
     cryptoKey.type === 'private'
       ? await jwkToCryptoKey(publicJWK, cryptoKey.algorithm)
       : cryptoKey
-  return {
+  /** @type {Key} */
+  const key = Object.freeze({
     get kid () {
       return kid
     },
@@ -50,19 +67,19 @@ export async function fromCryptoKey (cryptoKey, options) {
       return algorithm
     },
     jwk (priv = false) {
-      if (!priv) return { ...publicJWK, kid, alg: algorithm }
+      if (!priv) return { ...clone(publicJWK), kid, alg: algorithm }
       if (cryptoKey.type === 'public') {
         throw new Error('This key is not private or secret')
       }
-      return { ...jwk, kid, alg: algorithm }
+      return { ...clone(jwk), kid, alg: algorithm }
     },
     async signingKey () {
       switch (cryptoKey.type) {
         case 'secret':
-          if (!jwk.k) throw new Error('missing secret')
+          if (!jwk.k) return null
           return base64urlDecode(jwk.k)
         case 'public':
-          throw new Error('Key is public')
+          return null
         case 'private':
           return stringToArrayBuffer(await cryptoKeyToPEM(cryptoKey))
       }
@@ -70,7 +87,7 @@ export async function fromCryptoKey (cryptoKey, options) {
     async verifyingKey () {
       switch (cryptoKey.type) {
         case 'secret':
-          if (!jwk.k) throw new Error('missing secret')
+          if (!jwk.k) return null
           return base64urlDecode(jwk.k)
         case 'public':
         case 'private':
@@ -78,23 +95,23 @@ export async function fromCryptoKey (cryptoKey, options) {
       }
     },
     async sign (data) {
-      if (cryptoKey.type === 'public') {
-        throw new Error('This key is not able to sign')
-      }
+      if (cryptoKey.type === 'public') throw new InvalidSigningKey()
       return await webcrypto.subtle.sign(dsa, cryptoKey, data)
     },
     async verify (data, signature) {
       return webcrypto.subtle.verify(dsa, verifyKey, signature, data)
     }
-  }
+  })
+  keySet.add(key)
+  return key
 }
 
 /**
  * @param {JsonWebKey & { kid?: string }} jwk
  */
-export async function fromJWK (jwk) {
-  if (!jwk.alg) throw new Error('MissingAlgorithm')
-  if (!isAlgorithm(jwk.alg)) throw new Error('Unsupported Algorithm')
+export async function createKeyFromJWK (jwk) {
+  if (!jwk.alg) throw new MissingAlgorithm()
+  if (!isAlgorithm(jwk.alg)) throw new UnsupportedAlgorithm(jwk.alg)
   const key = await webcrypto.subtle.importKey(
     'jwk',
     jwk,
@@ -102,5 +119,5 @@ export async function fromJWK (jwk) {
     true,
     keyOps(jwk)
   )
-  return fromCryptoKey(key, { alg: jwk.alg, kid: jwk.kid })
+  return createKeyfromCryptoKey(key, { alg: jwk.alg, kid: jwk.kid })
 }

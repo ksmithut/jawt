@@ -21,6 +21,7 @@ export function isPlainObject (value) {
   if (!isObjectLike(value) || getTag(value) !== '[object Object]') {
     return false
   }
+  /* istanbul ignore if */
   if (Object.getPrototypeOf(value) === null) {
     return true
   }

@@ -5,6 +5,7 @@ import {
   arrayBufferToString
 } from './lib/utils/encoding.js'
 import {
+  InvalidKeyStore,
   MalformedJWT,
   InvalidKeyId,
   InvalidAlgorithm,
@@ -21,6 +22,7 @@ import {
   InvalidJSON
 } from './lib/errors.js'
 import { isPlainObject } from './lib/utils/types.js'
+import { isKeyStore } from './key-store.js'
 
 /**
  * @typedef {object} SignOptions
@@ -55,6 +57,9 @@ export async function sign (
     jwtId
   } = {}
 ) {
+  if (!isPlainObject(payload)) {
+    throw new TypeError('payload must be a plain object')
+  }
   payload = { ...payload }
   const nowTimestamp = dateToTimestamp(now)
   if (issuer !== undefined) payload.iss = issuer
@@ -69,6 +74,7 @@ export async function sign (
   else if (issuedAt instanceof Date) payload.iat = dateToTimestamp(issuedAt)
   else if (typeof issuedAt === 'number') payload.iat = issuedAt
   if (jwtId !== undefined) payload.jti = jwtId
+  if (!isKeyStore(keyStore)) throw new InvalidKeyStore()
   const key = keyStore.primaryKey()
   const header = { alg: key.alg, typ: 'JWT', kid: key.kid }
   const data = `${base64urlEncode(JSON.stringify(header))}.${base64urlEncode(
@@ -172,6 +178,7 @@ export async function verify (
     maxAge
   } = {}
 ) {
+  if (!isKeyStore(keyStore)) throw new InvalidKeyStore()
   const [header, payload, signature, data] = decode(token)
   if (header.kid !== undefined && typeof header.kid !== 'string') {
     throw new InvalidKeyId()

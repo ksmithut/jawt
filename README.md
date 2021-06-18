@@ -20,7 +20,8 @@ these libraries.
 
 This requires at least Node.js v15.13.0 because it utilizes the
 [WebCrypto](https://nodejs.org/dist/latest-v15.x/docs/api/webcrypto.html)
-implementation introduced in Node.js v15.0.0. At the time of writing this, it
+implementation introduced in Node.js v15.0.0 as well as the global `atob` and
+`btoa` methods introduced in Node.js v15.13.0. At the time of writing this, it
 also says this API is experimental (Stability 1), which states:
 
 > Experimental. The feature is not subject to Semantic Versioning rules.

@@ -4,7 +4,7 @@ import tap from 'tap'
 import jsonwebtoken from 'jsonwebtoken'
 import {
   jwt,
-  fromJWKS,
+  createKeyStoreFromJWKS,
   errors,
   generate,
   createKeyStore
@@ -57,7 +57,7 @@ tap.test('jwt', async tap => {
   await tap.test('fails if the kid matches, but alg does not', async () => {
     const key = (await generate('RS384')).jwk(true)
     key.kid = keyStore.primaryKey().kid
-    const altKeyStore = await fromJWKS({ keys: [key] })
+    const altKeyStore = await createKeyStoreFromJWKS({ keys: [key] })
     const token = await jwt.sign({}, altKeyStore)
     await assertVerifyFailure(
       token,
@@ -76,7 +76,7 @@ tap.test('jwt', async tap => {
     async () => {
       const key = (await generate('ES256')).jwk(true)
       key.kid = keyStore.primaryKey().kid
-      const altKeyStore = await fromJWKS({ keys: [key] })
+      const altKeyStore = await createKeyStoreFromJWKS({ keys: [key] })
       const token = await jwt.sign({}, altKeyStore)
       await assertVerifyFailure(
         token,
@@ -104,6 +104,52 @@ tap.test('jwt', async tap => {
         message: 'Invalid Signature'
       }
     )
+  })
+
+  await tap.test('fails if payload is not an object', async () => {
+    // @ts-ignore
+    await assert.rejects(jwt.sign('foo', keyStore), TypeError)
+    // @ts-ignore
+    await assert.rejects(jwt.sign('foo', keyStore), {
+      message: 'payload must be a plain object'
+    })
+  })
+
+  await tap.test('sign fails if keyStore is not a keyStore', async () => {
+    // @ts-ignore
+    await assert.rejects(jwt.sign({}, 'foo'), errors.InvalidKeyStore)
+    // @ts-ignore
+    await assert.rejects(jwt.sign({}, 'foo'), {
+      code: 'INVALID_KEY_STORE',
+      message: 'Invalid KeyStore'
+    })
+  })
+
+  await tap.test('verify fails if keyStore is not a keyStore', async () => {
+    const token = await jwt.sign({}, keyStore)
+    // @ts-ignore
+    await assert.rejects(jwt.verify(token, 'foo'), errors.InvalidKeyStore)
+    // @ts-ignore
+    await assert.rejects(jwt.verify(token, 'foo'), {
+      code: 'INVALID_KEY_STORE',
+      message: 'Invalid KeyStore'
+    })
+    // @ts-ignore
+    const result = await jwt.verifySafe(token, 'foo')
+    assert.strictEqual(result.success, false)
+    // @ts-ignore
+    assert.strictEqual(result.error instanceof errors.InvalidKeyStore, true)
+  })
+
+  await tap.test('sign fails if the key cannot sign', async () => {
+    const key = await generate('ES256')
+    const jwk = key.jwk()
+    const store = await createKeyStoreFromJWKS({ keys: [jwk] })
+    await assert.rejects(jwt.sign({}, store), errors.InvalidSigningKey)
+    await assert.rejects(jwt.sign({}, store), {
+      code: 'INVALID_SIGNING_KEY',
+      message: 'Given CryptoKey is not a signing key'
+    })
   })
 
   await tap.test('iss', async tap => {
@@ -674,16 +720,18 @@ async function getKeyStore () {
   // @ts-ignore
   const filepath = new URL('./fixtures/jwks.json', import.meta.url)
   const jwks = JSON.parse(await fs.promises.readFile(filepath, 'utf8'))
-  return fromJWKS(jwks)
+  return createKeyStoreFromJWKS(jwks)
 }
 
 /**
  * @param {string} token
- * @param {import('../src/key').Key} key
+ * @param {import('../src/index').Key} key
  * @param {import('jsonwebtoken').VerifyOptions} [options]
  */
 async function verifyExternal (token, key, options = {}) {
-  const verifyingKey = Buffer.from(await key.verifyingKey())
+  const keyData = await key.verifyingKey()
+  if (!keyData) throw new Error('could not get verifying key')
+  const verifyingKey = Buffer.from(keyData)
   return jsonwebtoken.verify(token, verifyingKey, {
     algorithms: [key.alg],
     ...options
@@ -692,7 +740,7 @@ async function verifyExternal (token, key, options = {}) {
 
 /**
  * @param {object} payload
- * @param {import('../src/key').Key} key
+ * @param {import('../src/index').Key} key
  * @param {import('jsonwebtoken').SignOptions} options
  */
 async function signExternal (payload, key, options = {}) {
@@ -706,8 +754,8 @@ async function signExternal (payload, key, options = {}) {
 
 /**
  * @param {string} token
- * @param {import('../src/key-store').KeyStore} keyStore
- * @param {import('../src/jwt').VerifyOptions|undefined} options
+ * @param {import('../src/index').KeyStore} keyStore
+ * @param {import('../src/index').jwt.VerifyOptions|undefined} options
  * @param {any} expectedPayload
  */
 async function assertVerifySuccess (token, keyStore, options, expectedPayload) {
@@ -723,8 +771,8 @@ async function assertVerifySuccess (token, keyStore, options, expectedPayload) {
 
 /**
  * @param {string} token
- * @param {import('../src/key-store').KeyStore} keyStore
- * @param {import('../src/jwt').VerifyOptions|undefined} options
+ * @param {import('../src/index').KeyStore} keyStore
+ * @param {import('../src/index').jwt.VerifyOptions|undefined} options
  * @param {function} errorType
  * @param {{[key: string]: any}} errorProps
  */

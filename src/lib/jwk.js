@@ -1,4 +1,5 @@
 import webcrypto from '#webcrypto'
+import { clone } from './utils/clone.js'
 import { stringToArrayBuffer, base64urlEncode } from './utils/encoding.js'
 import { UnsupportedKeyType } from './errors.js'
 
@@ -26,7 +27,7 @@ export async function jwkToCryptoKey (jwk, algorithm) {
  * @param {JsonWebKey} jwk
  */
 export function privateToPublic (jwk) {
-  jwk = Object.assign({}, jwk)
+  jwk = clone(jwk)
   switch (jwk.kty) {
     case 'oct':
       delete jwk.k
@@ -45,6 +46,7 @@ export function privateToPublic (jwk) {
       delete jwk.d
       jwk.key_ops = ['verify']
       break
+    /* istanbul ignore next */
     default:
       throw new UnsupportedKeyType(jwk.kty)
   }
@@ -58,6 +60,7 @@ export function privateToPublic (jwk) {
 export function keyOps (jwk) {
   switch (jwk.kty) {
     case 'oct':
+      /* istanbul ignore next */
       return jwk.k ? ['sign', 'verify'] : []
     case 'EC':
     case 'RSA':
@@ -84,6 +87,7 @@ export async function generateKid (jwk) {
     case 'EC':
       strippedJWK = { crv: jwk.crv, kty: jwk.kty, x: jwk.x, y: jwk.y }
       break
+    /* istanbul ignore next */
     default:
       throw new UnsupportedKeyType(jwk.kty)
   }

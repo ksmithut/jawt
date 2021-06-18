@@ -30,7 +30,7 @@
     "build": "tsc --emitDeclarationOnly",
     "prepublish": "tsc --emitDeclarationOnly",
     "test": "tap --reporter=spec",
-    "test:coverage": "tap --coverage-report=html"
+    "coverage": "tap --coverage-report=html"
   },
   "tap": {
     "check-coverage": true,

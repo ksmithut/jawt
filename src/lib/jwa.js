@@ -45,7 +45,8 @@ function getModulusLength (modulusLength = 2048) {
   if (
     typeof modulusLength !== 'number' ||
     isNaN(modulusLength) ||
-    modulusLength < 2048
+    modulusLength < 2048 ||
+    !Number.isFinite(modulusLength)
   ) {
     throw new InvalidModulusLength()
   }
@@ -157,6 +158,7 @@ export function subtleDSA (alg) {
       return { hash: 'SHA-384', name: 'ECDSA', namedCurve: 'P-384' }
     case 'ES512':
       return { hash: 'SHA-512', name: 'ECDSA', namedCurve: 'P-521' }
+    /* istanbul ignore next */
     default:
       throw new UnsupportedAlgorithm(alg)
   }
