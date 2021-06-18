@@ -76,6 +76,7 @@ export async function createKeyfromCryptoKey (cryptoKey, options) {
     async signingKey () {
       switch (cryptoKey.type) {
         case 'secret':
+          /* istanbul ignore if */
           if (!jwk.k) return null
           return base64urlDecode(jwk.k)
         case 'public':
@@ -87,6 +88,7 @@ export async function createKeyfromCryptoKey (cryptoKey, options) {
     async verifyingKey () {
       switch (cryptoKey.type) {
         case 'secret':
+          /* istanbul ignore if */
           if (!jwk.k) return null
           return base64urlDecode(jwk.k)
         case 'public':

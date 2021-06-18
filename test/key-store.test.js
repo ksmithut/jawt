@@ -113,6 +113,56 @@ tap.test('key-store', async tap => {
         errors.UnsupportedKeyType
       )
     })
+
+    await tap.test('is able to export keys from hs keys', async () => {
+      const key = await generate('HS256')
+      assert.deepStrictEqual(await key.signingKey(), await key.verifyingKey())
+    })
+
+    await tap.test('is able to export keys from es keys', async () => {
+      const key = await generate('ES256')
+      assert.notDeepStrictEqual(
+        await key.signingKey(),
+        await key.verifyingKey()
+      )
+    })
+
+    await tap.test('is able to export keys from rs keys', async () => {
+      const key = await generate('RS256')
+      assert.notDeepStrictEqual(
+        await key.signingKey(),
+        await key.verifyingKey()
+      )
+    })
+
+    await tap.test('is able to export keys from ps keys', async () => {
+      const key = await generate('PS256')
+      assert.notDeepStrictEqual(
+        await key.signingKey(),
+        await key.verifyingKey()
+      )
+    })
+
+    await tap.test('is unable to export public key', async () => {
+      const key = await generate('ES256')
+      const jwk = key.jwk()
+      const publicKey = (
+        await createKeyStoreFromJWKS({ keys: [jwk] })
+      ).primaryKey()
+      assert.strictEqual(await publicKey.signingKey(), null)
+    })
+
+    await tap.test('is able to get public key', async () => {
+      const key = await generate('ES256')
+      const jwk = key.jwk()
+      const publicKey = (
+        await createKeyStoreFromJWKS({ keys: [jwk] })
+      ).primaryKey()
+      assert.deepStrictEqual(
+        await publicKey.verifyingKey(),
+        await key.verifyingKey()
+      )
+    })
   })
 
   await tap.test('createKeyStore', async tap => {
