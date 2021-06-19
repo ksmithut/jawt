@@ -44,7 +44,7 @@
   "devDependencies": {
     "@arkweid/lefthook": "^0.7.6",
     "@istanbuljs/esm-loader-hook": "^0.1.2",
-    "@types/node": "^15.12.2",
+    "@types/node": "^15.12.4",
     "jsonwebtoken": "^8.5.1",
     "prettier-standard": "^16.4.1",
     "standard": "^16.0.3",
