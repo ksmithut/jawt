@@ -8,15 +8,13 @@ export function stringToArrayBuffer(str: string): ArrayBuffer;
  * @returns {string}
  */
 export function arrayBufferToString(arrayBuffer: ArrayBuffer): string;
-/** @type {(buffer: ArrayBuffer) => string} */
-export function base64encode(buffer: ArrayBuffer): string;
-/** @type {(string: string) => ArrayBuffer} */
-export function base64decode(string: string): ArrayBuffer;
 /**
- * @param {ArrayBuffer|string} buffer
+ * @param {ArrayBuffer|string} data
  */
-export function base64urlEncode(buffer: ArrayBuffer | string): string;
+export function base64urlEncode(data: ArrayBuffer | string): string;
 /**
  * @param {string} string
  */
-export function base64urlDecode(string: string): ArrayBuffer;
+export function base64urlDecode(string: string): string;
+export const base64encode: typeof btoa;
+export const base64decode: typeof atob;

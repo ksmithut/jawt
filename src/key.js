@@ -78,7 +78,7 @@ export async function createKeyfromCryptoKey (cryptoKey, options) {
         case 'secret':
           /* istanbul ignore if */
           if (!jwk.k) return null
-          return base64urlDecode(jwk.k)
+          return stringToArrayBuffer(base64urlDecode(jwk.k))
         case 'public':
           return null
         case 'private':
@@ -90,7 +90,7 @@ export async function createKeyfromCryptoKey (cryptoKey, options) {
         case 'secret':
           /* istanbul ignore if */
           if (!jwk.k) return null
-          return base64urlDecode(jwk.k)
+          return stringToArrayBuffer(base64urlDecode(jwk.k))
         case 'public':
         case 'private':
           return stringToArrayBuffer(await cryptoKeyToPEM(verifyKey))

@@ -15,22 +15,15 @@ export function arrayBufferToString (arrayBuffer) {
   return String.fromCodePoint(...new Uint8Array(arrayBuffer))
 }
 
-/** @type {(buffer: ArrayBuffer) => string} */
-export function base64encode (buffer) {
-  return btoa(arrayBufferToString(buffer))
-}
-
-/** @type {(string: string) => ArrayBuffer} */
-export function base64decode (string) {
-  return stringToArrayBuffer(atob(string))
-}
+export const base64encode = btoa
+export const base64decode = atob
 
 /**
- * @param {ArrayBuffer|string} buffer
+ * @param {ArrayBuffer|string} data
  */
-export function base64urlEncode (buffer) {
-  if (typeof buffer === 'string') buffer = stringToArrayBuffer(buffer)
-  return base64encode(buffer)
+export function base64urlEncode (data) {
+  if (data instanceof ArrayBuffer) data = arrayBufferToString(data)
+  return base64encode(data)
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
     .replace(/=+$/g, '')

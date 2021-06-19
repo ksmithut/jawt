@@ -1,8 +1,7 @@
 import {
   base64urlEncode,
   base64urlDecode,
-  stringToArrayBuffer,
-  arrayBufferToString
+  stringToArrayBuffer
 } from './lib/utils/encoding.js'
 import {
   InvalidKeyStore,
@@ -77,9 +76,9 @@ export async function sign (
   if (!isKeyStore(keyStore)) throw new InvalidKeyStore()
   const key = keyStore.primaryKey()
   const header = { alg: key.alg, typ: 'JWT', kid: key.kid }
-  const data = `${base64urlEncode(JSON.stringify(header))}.${base64urlEncode(
-    JSON.stringify(payload)
-  )}`
+  const headerString = base64urlEncode(JSON.stringify(header))
+  const payloadString = base64urlEncode(JSON.stringify(payload))
+  const data = `${headerString}.${payloadString}`
   const signature = await key.sign(stringToArrayBuffer(data))
   return `${data}.${base64urlEncode(signature)}`
 }
@@ -104,20 +103,14 @@ function decode (token) {
   const parts = token.split('.')
   if (parts.length !== 3) throw new MalformedJWT()
   const [rawHeader, rawPayload, rawSignature] = parts
-  const header = JSONParse(
-    arrayBufferToString(base64urlDecode(rawHeader)),
-    'header'
-  )
+  const header = JSONParse(base64urlDecode(rawHeader), 'header')
   if (!isPlainObject(header)) throw new MalformedJWT()
-  const payload = JSONParse(
-    arrayBufferToString(base64urlDecode(rawPayload)),
-    'payload'
-  )
+  const payload = JSONParse(base64urlDecode(rawPayload), 'payload')
   if (!isPlainObject(payload)) throw new MalformedJWT()
   return [
     header,
     payload,
-    base64urlDecode(rawSignature),
+    stringToArrayBuffer(base64urlDecode(rawSignature)),
     stringToArrayBuffer(`${rawHeader}.${rawPayload}`)
   ]
 }
