@@ -135,7 +135,7 @@ function decode (token) {
 /**
  * @typedef {object} VerifyResultError
  * @property {false} success
- * @property {import('./lib/errors').JsonWebTokenError} error
+ * @property {import('./lib/errors').JsonWebTokenError|unknown} error
  */
 
 /**
@@ -157,6 +157,7 @@ export async function verifySafe (token, keyStore, options) {
  * @param {string} token
  * @param {import('./key-store').KeyStore} keyStore
  * @param {VerifyOptions} [options]
+ * @returns {Promise<{[key:string]: unknown}>}
  */
 export async function verify (
   token,

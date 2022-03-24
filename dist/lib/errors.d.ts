@@ -19,6 +19,10 @@ export class InvalidModulusLength extends Error {
     code: string;
 }
 export class UnsupportedKeyType extends Error {
+    /**
+     * @param {string} [kty]
+     */
+    constructor(kty?: string | undefined);
     code: string;
 }
 export class InvalidKeyStore extends TypeError {
@@ -32,6 +36,13 @@ export class JsonWebTokenError extends Error {
      */
     constructor(code: string, message: string);
     code: string;
+}
+export class UnhandledJsonWebTokenError extends JsonWebTokenError {
+    /**
+     * @param {unknown} originalError
+     */
+    constructor(originalError: unknown);
+    originalError: unknown;
 }
 export class MalformedJWT extends JsonWebTokenError {
     constructor();
