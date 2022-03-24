@@ -36,7 +36,7 @@ export function sign(payload: {
 /**
  * @typedef {object} VerifyResultError
  * @property {false} success
- * @property {import('./lib/errors').JsonWebTokenError} error
+ * @property {import('./lib/errors').JsonWebTokenError|unknown} error
  */
 /**
  * @param {string} token
@@ -49,6 +49,7 @@ export function verifySafe(token: string, keyStore: import('./key-store').KeySto
  * @param {string} token
  * @param {import('./key-store').KeyStore} keyStore
  * @param {VerifyOptions} [options]
+ * @returns {Promise<{[key:string]: unknown}>}
  */
 export function verify(token: string, keyStore: import('./key-store').KeyStore, { now, issuer, subject, audience, jwtId, clockTolerance, maxAge }?: VerifyOptions | undefined): Promise<{
     [key: string]: unknown;
@@ -105,5 +106,5 @@ export type VerifyResultSuccess = {
 };
 export type VerifyResultError = {
     success: false;
-    error: import('./lib/errors').JsonWebTokenError;
+    error: import('./lib/errors').JsonWebTokenError | unknown;
 };

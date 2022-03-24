@@ -37,13 +37,6 @@ export class JsonWebTokenError extends Error {
     constructor(code: string, message: string);
     code: string;
 }
-export class UnhandledJsonWebTokenError extends JsonWebTokenError {
-    /**
-     * @param {unknown} originalError
-     */
-    constructor(originalError: unknown);
-    originalError: unknown;
-}
 export class MalformedJWT extends JsonWebTokenError {
     constructor();
 }
