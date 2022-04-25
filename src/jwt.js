@@ -87,9 +87,9 @@ export async function sign (
  * @param {string} string
  * @param {'header'|'payload'} type
  */
-function JSONParse (string, type) {
+function JSONParseBase64 (string, type) {
   try {
-    return JSON.parse(string)
+    return JSON.parse(base64urlDecode(string))
   } catch {
     throw new InvalidJSON(type)
   }
@@ -103,9 +103,9 @@ function decode (token) {
   const parts = token.split('.')
   if (parts.length !== 3) throw new MalformedJWT()
   const [rawHeader, rawPayload, rawSignature] = parts
-  const header = JSONParse(base64urlDecode(rawHeader), 'header')
+  const header = JSONParseBase64(rawHeader, 'header')
   if (!isPlainObject(header)) throw new MalformedJWT()
-  const payload = JSONParse(base64urlDecode(rawPayload), 'payload')
+  const payload = JSONParseBase64(rawPayload, 'payload')
   if (!isPlainObject(payload)) throw new MalformedJWT()
   return [
     header,
