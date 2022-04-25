@@ -7,6 +7,9 @@
   "exports": "./src/index.js",
   "type": "module",
   "types": "./dist/index.d.ts",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
+  },
   "engines": {
     "node": ">=15.13.x"
   },
