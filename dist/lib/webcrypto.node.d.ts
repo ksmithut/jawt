@@ -1,3 +1,3 @@
-export default webcrypto;
+export default crypto;
 /** @type {Crypto} */
-declare const webcrypto: Crypto;
+declare const crypto: Crypto;

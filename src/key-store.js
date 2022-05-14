@@ -1,22 +1,12 @@
 import { createKeyFromJWK, isKey } from './key.js'
 
-/**
- * @typedef {import('./key').Key} Key
- */
+/** @typedef {ReturnType<createKeyStore>} KeyStore */
 
 /**
- * @typedef {object} KeyStore
- * @property {() => import('./key').Key} primaryKey
- * @property {(kid?: string) => import('./key').Key?} get
- * @property {() => import('./key').Key[]} keys
- * @property {(priv?: boolean) => { keys: JsonWebKey[] }} jwks
+ * @param {unknown} keys
+ * @returns {key is import('./key.js').Key[]}
  */
-
-/**
- * @param {Key[]} keys
- * @returns {keys is Key[]}
- */
-function isArrayOfKeys (keys) {
+function isKeyArray (keys) {
   if (!Array.isArray(keys)) return false
   return keys.every(key => isKey(key))
 }
@@ -24,37 +14,43 @@ function isArrayOfKeys (keys) {
 const keyStoreSet = new WeakSet()
 
 /**
- * @param {KeyStore} keyStore
+ * @param {unknown} keyStore
  * @returns {keyStore is KeyStore}
  */
 export function isKeyStore (keyStore) {
+  // @ts-ignore
   return keyStoreSet.has(keyStore)
 }
 
 /**
- * @param {import('./key').Key[]} keys
- * @returns {KeyStore}
+ * @param {import('./key.js').Key[]} keys
  */
 export function createKeyStore (keys) {
-  if (!isArrayOfKeys(keys)) throw new TypeError('keys must be an array of keys')
+  if (!isKeyArray(keys)) throw new TypeError('keys must be an array of Keys')
   keys = keys.slice()
   if (keys.length === 0) {
-    throw new ReferenceError('Key store must have at lest 1 key')
+    throw new RangeError('KeyStore must have at least 1 key')
   }
-  const keysByKid = new Map(keys.map(key => [key.kid, key]))
-  /** @type {KeyStore} */
+  const keysByKid = new Map(keys.map(key => [key.kid(), key]))
   const keyStore = Object.freeze({
     primaryKey () {
       return keys[0]
     },
+    /**
+     * @param {string} [kid]
+     */
     get (kid) {
-      return keysByKid.get(kid || '') || null
+      // @ts-ignore
+      return keysByKid.get(kid) ?? null
     },
-    keys () {
-      return keys.slice()
+    * keys () {
+      for (const key of keys) yield key
     },
-    jwks (priv = false) {
-      return { keys: keys.map(key => key.jwk(priv)) }
+    privateJWKS () {
+      return { keys: keys.map(key => key.privateJWK()) }
+    },
+    publicJWKS () {
+      return { keys: keys.map(key => key.publicJWK()) }
     }
   })
   keyStoreSet.add(keyStore)
@@ -62,7 +58,7 @@ export function createKeyStore (keys) {
 }
 
 /**
- * @param {{ keys: JsonWebKey[] }} jwks
+ * @param {{ keys: (JsonWebKey & { kid?: string, alg: string })[] }} jwks
  */
 export async function createKeyStoreFromJWKS (jwks) {
   return createKeyStore(

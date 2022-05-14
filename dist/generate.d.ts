@@ -1,19 +1,33 @@
+/** @typedef {import('./lib/jwa.js').JWAlgorithm} JWAlgorithm */
 /**
- * @typedef {(alg: import('./lib/jwa').HSAlgorithm, options?: undefined) => Promise<import('./key').Key>} GenerateHS
- * @typedef {(alg: import('./lib/jwa').RSAlgorithm, options?: { modulusLength?: number }) => Promise<import('./key').Key>} GenerateRS
- * @typedef {(alg: import('./lib/jwa').PSAlgorithm, options?: { modulusLength?: number }) => Promise<import('./key').Key>} GeneratePS
- * @typedef {(alg: import('./lib/jwa').ESAlgorithm, options?: undefined) => Promise<import('./key').Key>} GenerateES
- *
- * @typedef {GenerateHS & GenerateRS & GeneratePS & GenerateES} Generate
+ * @param {JWAlgorithm} alg
+ * @param {object} [options]
+ * @param {number} [options.modulusLength]
  */
-/** @type {Generate} */
-export const generate: Generate;
-export type GenerateHS = (alg: import('./lib/jwa').HSAlgorithm, options?: undefined) => Promise<import('./key').Key>;
-export type GenerateRS = (alg: import('./lib/jwa').RSAlgorithm, options?: {
+export function generateCryptoKey(alg: JWAlgorithm, options?: {
     modulusLength?: number | undefined;
-} | undefined) => Promise<import('./key').Key>;
-export type GeneratePS = (alg: import('./lib/jwa').PSAlgorithm, options?: {
+} | undefined): Promise<CryptoKey>;
+export type JWAlgorithm = import('./lib/jwa.js').JWAlgorithm;
+/**
+ * @param {JWAlgorithm} alg
+ * @param {object} [options]
+ * @param {number} [options.modulusLength]
+ */
+export function generate(alg: JWAlgorithm, options?: {
     modulusLength?: number | undefined;
-} | undefined) => Promise<import('./key').Key>;
-export type GenerateES = (alg: import('./lib/jwa').ESAlgorithm, options?: undefined) => Promise<import('./key').Key>;
-export type Generate = GenerateHS & GenerateRS & GeneratePS & GenerateES;
+} | undefined): Promise<Readonly<{
+    kid(): string;
+    alg(): import("./lib/jwa.js").JWAlgorithm;
+    privateJWK(): JsonWebKey & {
+        kid: string;
+        alg: string;
+    };
+    publicJWK(): JsonWebKey & {
+        kid: string;
+        alg: string;
+    };
+    signingKey(): CryptoKey;
+    verifyingKey(): CryptoKey;
+    signingKeyRaw(): Promise<ArrayBuffer>;
+    verifyingKeyRaw(): Promise<ArrayBuffer>;
+}>>;

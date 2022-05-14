@@ -1,6 +1,6 @@
-import webcrypto from '#webcrypto'
-import { base64encode, arrayBufferToString } from './utils/encoding.js'
-import { splitEvery } from './utils/split-every.js'
+import webcrypto from './webcrypto.node.js'
+import { base64encode } from './base64.node.js'
+import { splitEvery } from './utils.js'
 
 const PRIVATE_KEY_HEADER = '-----BEGIN PRIVATE KEY-----'
 const PRIVATE_KEY_FOOTER = '-----END PRIVATE KEY-----'
@@ -14,7 +14,7 @@ export async function cryptoKeyToPEM (cryptoKey) {
   switch (cryptoKey.type) {
     case 'private': {
       const exportedKey = await webcrypto.subtle.exportKey('pkcs8', cryptoKey)
-      const encodedKey = base64encode(arrayBufferToString(exportedKey))
+      const encodedKey = base64encode(exportedKey)
       return [
         PRIVATE_KEY_HEADER,
         ...splitEvery(encodedKey, 64),
@@ -23,14 +23,13 @@ export async function cryptoKeyToPEM (cryptoKey) {
     }
     case 'public': {
       const exportedKey = await webcrypto.subtle.exportKey('spki', cryptoKey)
-      const encodedKey = base64encode(arrayBufferToString(exportedKey))
+      const encodedKey = base64encode(exportedKey)
       return [
         PUBLIC_KEY_HEADER,
         ...splitEvery(encodedKey, 64),
         PUBLIC_KEY_FOOTER
       ].join('\n')
     }
-    /* istanbul ignore next */
     default:
       throw new Error(`Unknown type: "${cryptoKey.type}"`)
   }

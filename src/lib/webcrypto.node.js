@@ -1,7 +1,6 @@
-// This should be imported via #webcrypto
-import crypto from 'crypto'
+import { webcrypto } from 'node:crypto'
 
 /** @type {Crypto} */
 // @ts-ignore
-const webcrypto = crypto.webcrypto
-export default webcrypto
+const crypto = webcrypto
+export default crypto

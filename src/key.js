@@ -1,40 +1,28 @@
-import webcrypto from '#webcrypto'
-import { base64urlDecode, stringToArrayBuffer } from './lib/utils/encoding.js'
-import { clone } from './lib/utils/clone.js'
-import {
-  UnsupportedAlgorithm,
-  MissingAlgorithm,
-  InvalidSigningKey
-} from './lib/errors.js'
-import {
-  cryptoKeyToJWK,
-  jwkToCryptoKey,
-  privateToPublic,
-  generateKid,
-  keyOps
-} from './lib/jwk.js'
+import webcrypto from './lib/webcrypto.node.js'
+import { clone, stringToArrayBuffer } from './lib/utils.js'
 import { cryptoKeyToPEM } from './lib/pem.js'
-import { subtleDSA, isAlgorithm } from './lib/jwa.js'
+import { isAlgorithm, UnsupportedAlgorithm } from './lib/jwa.js'
+import {
+  exportJWK,
+  importJWK,
+  privateToPublic,
+  generateKid
+} from './lib/jwk.js'
+import { InvalidSigningKey } from './lib/jws.js'
 
 /**
- * @typedef {object} Key
- * @property {string} kid
- * @property {import('./lib/jwa').JWAlgorithm} alg
- * @property {(priv?: boolean) => JsonWebKey & { kid: string }} jwk
- * @property {() => Promise<ArrayBuffer | null>} signingKey
- * @property {() => Promise<ArrayBuffer | null>} verifyingKey
- * @property {(data: ArrayBuffer) => Promise<ArrayBuffer>} sign
- * @property {(data: ArrayBuffer, signature: ArrayBuffer) => Promise<boolean>} verify
+ * @typedef {Awaited<ReturnType<createKeyFromCryptoKey>>} Key
  */
 
 const keySet = new WeakSet()
 
 /**
- * @param {Key} key
- * @returns {key is Key}
+ * @param {unknown} value
+ * @returns {value is Key}
  */
-export function isKey (key) {
-  return keySet.has(key)
+export function isKey (value) {
+  // @ts-ignore
+  return keySet.has(value)
 }
 
 /**
@@ -42,66 +30,61 @@ export function isKey (key) {
  * @param {object} options
  * @param {import('./lib/jwa').JWAlgorithm} options.alg
  * @param {string} [options.kid]
- * @returns {Promise<Key>}
  */
-export async function createKeyfromCryptoKey (cryptoKey, options) {
-  const algorithm = options.alg
-  const dsa = subtleDSA(algorithm)
-  const jwk = await cryptoKeyToJWK(cryptoKey)
+export async function createKeyFromCryptoKey (cryptoKey, options) {
+  const alg = options.alg
+  const jwk = await exportJWK(cryptoKey)
   const publicJWK = privateToPublic(jwk)
-  /** @type {string} */
   const kid =
-    options.kid ||
+    options.kid ??
     (await generateKid(cryptoKey.type === 'secret' ? jwk : publicJWK))
-  /** @type {CryptoKey} */
   const verifyKey =
-    cryptoKey.type === 'private'
-      ? await jwkToCryptoKey(publicJWK, cryptoKey.algorithm)
-      : cryptoKey
-  /** @type {Key} */
+    cryptoKey.type === 'private' ? await importJWK(publicJWK, alg) : cryptoKey
   const key = Object.freeze({
-    get kid () {
+    kid () {
       return kid
     },
-    get alg () {
-      return algorithm
+    alg () {
+      return alg
     },
-    jwk (priv = false) {
-      if (!priv) return { ...clone(publicJWK), kid, alg: algorithm }
-      if (cryptoKey.type === 'public') {
-        throw new Error('This key is not private or secret')
-      }
-      return { ...clone(jwk), kid, alg: algorithm }
+    /**
+     * @returns {JsonWebKey & { kid: string, alg: string }}
+     */
+    privateJWK () {
+      if (cryptoKey.type === 'public') throw new InvalidSigningKey()
+      return { ...clone(jwk), kid, alg }
     },
-    async signingKey () {
+    /**
+     * @returns {JsonWebKey & { kid: string, alg: string }}
+     */
+    publicJWK () {
+      return { ...clone(publicJWK), kid, alg }
+    },
+    signingKey () {
+      if (cryptoKey.type === 'public') throw new InvalidSigningKey()
+      return cryptoKey
+    },
+    verifyingKey () {
+      return verifyKey
+    },
+    async signingKeyRaw () {
       switch (cryptoKey.type) {
-        case 'secret':
-          /* istanbul ignore if */
-          if (!jwk.k) return null
-          return stringToArrayBuffer(base64urlDecode(jwk.k))
         case 'public':
-          return null
+          throw new InvalidSigningKey()
         case 'private':
           return stringToArrayBuffer(await cryptoKeyToPEM(cryptoKey))
+        case 'secret':
+          return await webcrypto.subtle.exportKey('raw', cryptoKey)
       }
     },
-    async verifyingKey () {
-      switch (cryptoKey.type) {
-        case 'secret':
-          /* istanbul ignore if */
-          if (!jwk.k) return null
-          return stringToArrayBuffer(base64urlDecode(jwk.k))
+    async verifyingKeyRaw () {
+      switch (verifyKey.type) {
         case 'public':
         case 'private':
           return stringToArrayBuffer(await cryptoKeyToPEM(verifyKey))
+        case 'secret':
+          return await webcrypto.subtle.exportKey('raw', cryptoKey)
       }
-    },
-    async sign (data) {
-      if (cryptoKey.type === 'public') throw new InvalidSigningKey()
-      return await webcrypto.subtle.sign(dsa, cryptoKey, data)
-    },
-    async verify (data, signature) {
-      return webcrypto.subtle.verify(dsa, verifyKey, signature, data)
     }
   })
   keySet.add(key)
@@ -109,17 +92,11 @@ export async function createKeyfromCryptoKey (cryptoKey, options) {
 }
 
 /**
- * @param {JsonWebKey & { kid?: string }} jwk
+ * @param {JsonWebKey & { kid?: string, alg: string }} jwk
  */
 export async function createKeyFromJWK (jwk) {
-  if (!jwk.alg) throw new MissingAlgorithm()
-  if (!isAlgorithm(jwk.alg)) throw new UnsupportedAlgorithm(jwk.alg)
-  const key = await webcrypto.subtle.importKey(
-    'jwk',
-    jwk,
-    subtleDSA(jwk.alg),
-    true,
-    keyOps(jwk)
-  )
-  return createKeyfromCryptoKey(key, { alg: jwk.alg, kid: jwk.kid })
+  const { alg, kid } = jwk
+  if (!isAlgorithm(alg)) throw new UnsupportedAlgorithm(jwk.alg)
+  const key = await importJWK(jwk, alg)
+  return createKeyFromCryptoKey(key, { alg, kid })
 }
