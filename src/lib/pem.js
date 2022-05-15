@@ -30,6 +30,7 @@ export async function cryptoKeyToPEM (cryptoKey) {
         PUBLIC_KEY_FOOTER
       ].join('\n')
     }
+    /* c8 ignore next 2 */
     default:
       throw new Error(`Unknown type: "${cryptoKey.type}"`)
   }

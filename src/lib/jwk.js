@@ -50,6 +50,7 @@ export function privateToPublic (jwk) {
       delete jwk.d
       jwk.key_ops = ['verify']
       break
+    /* c8 ignore next 2 */
     default:
       throw new UnsupportedKeyType(jwk.kty)
   }
@@ -89,6 +90,7 @@ export async function generateKid (jwk) {
     case 'EC':
       strippedJWK = { crv: jwk.crv, kty: jwk.kty, x: jwk.x, y: jwk.y }
       break
+    /* c8 ignore next 2 */
     default:
       throw new UnsupportedKeyType(jwk.kty)
   }

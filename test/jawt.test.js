@@ -8,6 +8,7 @@ import {
   jwt,
   createKeyStore,
   createKeyStoreFromJWKS,
+  createKeyFromCryptoKey,
   createKeyFromJWK
 } from '../src/index.js'
 
@@ -779,4 +780,31 @@ test('edge case errors', async t => {
       message: 'JWT payload not an object'
     })
   })
+
+  t.test('fails to import cryptoKey if unsupported algorithm', async () => {
+    const key = await generate('ES256')
+    await assert.rejects(
+      // @ts-ignore
+      () => createKeyFromCryptoKey(key.signingKey(), { alg: 'ES257' }),
+      {
+        name: 'UnsupportedAlgorithm',
+        code: 'UNSUPPORTED_JWA_ALGORITHM',
+        message: 'Unsupported algorithm: "ES257"'
+      }
+    )
+  })
+
+  t.test(
+    'fails to import cryptoKey if HMAC JWK and missing secret',
+    async () => {
+      const prevKey = await generate('HS256')
+      const key = await createKeyFromJWK(prevKey.privateJWK())
+      const publicJWK = key.publicJWK()
+      await assert.rejects(() => createKeyFromJWK(publicJWK), {
+        name: 'TypeError',
+        code: 'ERR_CRYPTO_INVALID_JWK',
+        message: 'Invalid JWK secret key format'
+      })
+    }
+  )
 })

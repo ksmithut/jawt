@@ -9,11 +9,19 @@ export function clone (value) {
 }
 
 /**
+ * @param {string} char
+ */
+function charToCodePoint (char) {
+  /* c8 ignore next */
+  return char.codePointAt(0) ?? 0
+}
+
+/**
  * @param {string} string
  * @returns {ArrayBuffer}
  */
 export function stringToArrayBuffer (string) {
-  return Uint8Array.from(string, c => c.codePointAt(0) ?? 0).buffer
+  return Uint8Array.from(string, charToCodePoint).buffer
 }
 
 /**
@@ -28,6 +36,7 @@ export function dateToTimestamp (date) {
  * @param {TValue|TValue[]|null} [value]
  */
 export function toArray (value) {
+  /* c8 ignore next */
   if (value == null) return []
   if (Array.isArray(value)) return value
   return [value]

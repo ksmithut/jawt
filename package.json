@@ -11,7 +11,7 @@
     "registry": "https://registry.npmjs.org"
   },
   "engines": {
-    "node": ">=15"
+    "node": ">=17"
   },
   "repository": {
     "url": "git@github.com:ksmithut/jawt.git"
@@ -30,7 +30,7 @@
     "prepublish": "npm run build",
     "test:node": "NODE_V8_COVERAGE=coverage/ node --test test/",
     "test": "tap --no-coverage --reporter=spec test/",
-    "test:coverage": "c8 --reporter=html --reporter=text --reports-dir=./coverage/lcov-report -- npm run test",
+    "test:coverage": "c8 --100 --reporter=html --reporter=text --reports-dir=./coverage/lcov-report -- npm run test",
     "prepare": "husky install || true"
   },
   "dependencies": {},

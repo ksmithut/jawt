@@ -42,6 +42,7 @@ export class InvalidJSON extends JsonWebTokenError {
   }
 }
 
+/* c8 ignore next 5 */
 export class AlgorithmMismatch extends JsonWebTokenError {
   constructor () {
     super('ALGORITHM_MISMATCH', 'JWT algorithm did not match')

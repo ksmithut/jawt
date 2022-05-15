@@ -86,6 +86,7 @@ export function decodeJWT (token) {
 export async function verifyJWT (token, getKeys) {
   const [claims, header, signature, data] = decodeJWT(token)
   for (const [alg, key] of getKeys(header)) {
+    /* c8 ignore next */
     if (alg !== header.alg) throw new AlgorithmMismatch()
     if (await jws.verify(alg, key, signature, data).catch(() => false)) {
       return [claims, header]

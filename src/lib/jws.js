@@ -9,6 +9,7 @@ import { subtleDSA } from './jwa.js'
  * @param {ArrayBuffer} data
  */
 export async function sign (alg, cryptoKey, data) {
+  /* c8 ignore next */
   if (cryptoKey.type === 'public') throw new InvalidSigningKey()
   return webcrypto.subtle.sign(subtleDSA(alg), cryptoKey, data)
 }

@@ -21,6 +21,7 @@ export function isPlainObject (value) {
   if (!isObjectLike(value) || getTag(value) !== '[object Object]') {
     return false
   }
+  /* c8 ignore next */
   if (Object.getPrototypeOf(value) === null) return true
   let proto = value
   while (Object.getPrototypeOf(proto) !== null) {
