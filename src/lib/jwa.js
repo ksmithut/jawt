@@ -26,6 +26,10 @@ const SUPPORTED_ALGORITHMS = new Set([
   'ES512'
 ])
 
+export function supportedAlgorithms () {
+  return Array.from(SUPPORTED_ALGORITHMS)
+}
+
 /**
  * @param {unknown} alg
  * @return {alg is JWAlgorithm}

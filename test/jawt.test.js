@@ -9,7 +9,8 @@ import {
   createKeyStore,
   createKeyStoreFromJWKS,
   createKeyFromCryptoKey,
-  createKeyFromJWK
+  createKeyFromJWK,
+  supportedAlgorithms
 } from '../src/index.js'
 
 const { test } = tap
@@ -179,6 +180,23 @@ test('jawt', async t => {
       { algorithms: [key.alg()] }
     )
     assert.deepStrictEqual(payload, { iat: clockTimestamp })
+  })
+
+  t.test('gets list of supported algorithms', async () => {
+    assert.deepStrictEqual(supportedAlgorithms(), [
+      'HS256',
+      'HS384',
+      'HS512',
+      'RS256',
+      'RS384',
+      'RS512',
+      'PS256',
+      'PS384',
+      'PS512',
+      'ES256',
+      'ES384',
+      'ES512'
+    ])
   })
 })
 
