@@ -1,3 +1,4 @@
+export function supportedAlgorithms(): JWAlgorithm[];
 /**
  * @param {unknown} alg
  * @return {alg is JWAlgorithm}

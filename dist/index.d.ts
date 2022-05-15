@@ -5,5 +5,5 @@ export * from "./generate.js";
 export * from "./lib/jwt.errors.js";
 export { UnsupportedKeyType } from "./lib/jwk.js";
 export { InvalidSigningKey } from "./lib/jws.js";
-export { InvalidModulusLength, UnsupportedAlgorithm } from "./lib/jwa.js";
+export { InvalidModulusLength, UnsupportedAlgorithm, supportedAlgorithms } from "./lib/jwa.js";
 export { TokenExpired, NotBefore } from "./lib/jwt.standard-claims.js";
