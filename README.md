@@ -18,7 +18,7 @@ these libraries.
 
 # Requirements
 
-This requires at least Node.js v15.13.0 because it utilizes the
+This requires at least Node.js v17.0.0 because it utilizes the
 [WebCrypto](https://nodejs.org/dist/latest-v15.x/docs/api/webcrypto.html)
 implementation introduced in Node.js v15.0.0. At the time of writing this, it
 also says this API is experimental (Stability 1), which states:
@@ -32,6 +32,11 @@ was looking for (native JWK support, more standard signing/verifying api). So
 the actual crypto bits are still left to the professionals. This also should
 make it fairly easy to make it compatible with the browser once I figure out how
 to split the webcrypto exports.
+
+This library also utilizes [`structuredClone`](https://nodejs.org/dist/latest-v18.x/docs/api/globals.html#structuredclonevalue-options),
+which was introduced in version 17.0.0. It could probably easily be polyfiled
+with a dependency, but as one of the goals of this library is to not have any
+dependencies itself, I've decided to just require node version 17.0.0 or higher.
 
 Also, there is no CommonJS version of this library. I'm sure it's just a simple
 build process to split the two, which I'll look into when I spend more time on
@@ -119,14 +124,14 @@ Creates a KeyStore to be used for signing and verifying.
 ```js
 import { generate, createKeyStore } from 'jawt'
 
-const keys = await Promise.all([generate('ES512'), generate('HS256')])
+const keys = await Promise.all([generate('ES512'), generate('RS256')])
 const keyStore = createKeyStore(keys)
 
 keyStore.primaryKey() // gets the first key, used for signing
 keyStore.get(keys[0].kid) // gets a key by kid, used in verifying
 keyStore.keys() // returns a generator that returns each key. Use `Array.from(keyStore.keys())` or `[...keyStore.keys()]` if you need an array
 keyStore.publicJWKS() // { keys: [] } returns the public version of the keys in JWK format
-keyStore.privateJWKS() // {keys: [] } returns the private version of the keys in JWK format
+keyStore.privateJWKS() // { keys: [] } returns the private version of the keys in JWK format
 ```
 
 ## `createKeyStoreFromJWKS(JWKS) => Promise<KeyStore>`
@@ -136,7 +141,7 @@ Creates a KeyStore from a JSON Web Key Set
 ```js
 import { generate, createKeyStore, createKeyStoreFromJWKS } from 'jawt'
 
-const keys = await Promise.all([generate('ES512'), generate('HS256')])
+const keys = await Promise.all([generate('ES512'), generate('RS256')])
 const keyStore = createKeyStore(keys)
 
 const jwks = keyStore.privateJWKS()
