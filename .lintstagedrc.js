@@ -1,4 +1,4 @@
 export default {
   '**/*': 'prettier-standard --lint',
-  '**/*.{js,json}': () => 'tsc'
+  '**/*.{js,json}': () => 'tsc --emitDeclarationOnly'
 }

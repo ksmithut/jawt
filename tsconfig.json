@@ -10,10 +10,7 @@
     "outDir": "dist",
     "allowJs": true,
     "checkJs": true,
-    "declaration": true,
-    "paths": {
-      "#webcrypto": ["./src/lib/webcrypto.node.js"]
-    }
+    "declaration": true
   },
   "include": ["src/**/*"],
   "exclude": [".nyc_output/**/*"]

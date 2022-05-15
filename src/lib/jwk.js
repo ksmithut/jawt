@@ -1,15 +1,12 @@
-import webcrypto from '#webcrypto'
-import { clone } from './utils/clone.js'
-import { stringToArrayBuffer, base64urlEncode } from './utils/encoding.js'
-import { UnsupportedKeyType } from './errors.js'
-
-// TODO we probably need to add x5t and x5c: https://redthunder.blog/2017/06/08/jwts-jwks-kids-x5ts-oh-my/
-// https://tools.ietf.org/html/rfc7515#page-12
+import webcrypto from './webcrypto.node.js'
+import { subtleDSA } from './jwa.js'
+import { clone, stringToArrayBuffer } from './utils.js'
+import { base64urlEncode } from './base64.node.js'
 
 /**
  * @param {CryptoKey} cryptoKey
  */
-export async function cryptoKeyToJWK (cryptoKey) {
+export async function exportJWK (cryptoKey) {
   const jwk = await webcrypto.subtle.exportKey('jwk', cryptoKey)
   delete jwk.ext
   return jwk
@@ -17,14 +14,21 @@ export async function cryptoKeyToJWK (cryptoKey) {
 
 /**
  * @param {JsonWebKey} jwk
- * @param {KeyAlgorithm} algorithm
+ * @param {import('./jwa.js').JWAlgorithm} algorithm
  */
-export async function jwkToCryptoKey (jwk, algorithm) {
-  return webcrypto.subtle.importKey('jwk', jwk, algorithm, true, keyOps(jwk))
+export async function importJWK (jwk, algorithm) {
+  return webcrypto.subtle.importKey(
+    'jwk',
+    jwk,
+    subtleDSA(algorithm),
+    true,
+    keyOps(jwk)
+  )
 }
 
 /**
  * @param {JsonWebKey} jwk
+ * @returns {JsonWebKey}
  */
 export function privateToPublic (jwk) {
   jwk = clone(jwk)
@@ -46,7 +50,7 @@ export function privateToPublic (jwk) {
       delete jwk.d
       jwk.key_ops = ['verify']
       break
-    /* istanbul ignore next */
+    /* c8 ignore next 2 */
     default:
       throw new UnsupportedKeyType(jwk.kty)
   }
@@ -57,10 +61,9 @@ export function privateToPublic (jwk) {
  * @param {JsonWebKey} jwk
  * @returns {KeyUsage[]}
  */
-export function keyOps (jwk) {
+function keyOps (jwk) {
   switch (jwk.kty) {
     case 'oct':
-      /* istanbul ignore next */
       return jwk.k ? ['sign', 'verify'] : []
     case 'EC':
     case 'RSA':
@@ -87,7 +90,7 @@ export async function generateKid (jwk) {
     case 'EC':
       strippedJWK = { crv: jwk.crv, kty: jwk.kty, x: jwk.x, y: jwk.y }
       break
-    /* istanbul ignore next */
+    /* c8 ignore next 2 */
     default:
       throw new UnsupportedKeyType(jwk.kty)
   }
@@ -97,4 +100,16 @@ export async function generateKid (jwk) {
       stringToArrayBuffer(JSON.stringify(strippedJWK))
     )
   )
+}
+
+export class UnsupportedKeyType extends Error {
+  /**
+   * @param {string} [kty]
+   */
+  constructor (kty) {
+    super(`Unsupported jwk kty: "${kty}"`)
+    Error.captureStackTrace(this, this.constructor)
+    this.name = this.constructor.name
+    this.code = 'UNSUPPORTED_JWK_KTY'
+  }
 }

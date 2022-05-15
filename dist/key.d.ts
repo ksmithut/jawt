@@ -1,33 +1,86 @@
 /**
- * @param {Key} key
- * @returns {key is Key}
+ * @param {unknown} value
+ * @returns {value is Key}
  */
-export function isKey(key: Key): key is Key;
+export function isKey(value: unknown): value is Readonly<{
+    kid(): string;
+    alg(): import("./lib/jwa.js").JWAlgorithm;
+    /**
+     * @returns {JsonWebKey & { kid: string, alg: string }}
+     */
+    privateJWK(): JsonWebKey & {
+        kid: string;
+        alg: string;
+    };
+    /**
+     * @returns {JsonWebKey & { kid: string, alg: string }}
+     */
+    publicJWK(): JsonWebKey & {
+        kid: string;
+        alg: string;
+    };
+    signingKey(): CryptoKey;
+    verifyingKey(): CryptoKey;
+    signingKeyRaw(): Promise<ArrayBuffer>;
+    verifyingKeyRaw(): Promise<ArrayBuffer>;
+}>;
 /**
  * @param {CryptoKey} cryptoKey
  * @param {object} options
  * @param {import('./lib/jwa').JWAlgorithm} options.alg
  * @param {string} [options.kid]
- * @returns {Promise<Key>}
  */
-export function createKeyfromCryptoKey(cryptoKey: CryptoKey, options: {
+export function createKeyFromCryptoKey(cryptoKey: CryptoKey, options: {
     alg: import('./lib/jwa').JWAlgorithm;
     kid?: string | undefined;
-}): Promise<Key>;
+}): Promise<Readonly<{
+    kid(): string;
+    alg(): import("./lib/jwa.js").JWAlgorithm;
+    /**
+     * @returns {JsonWebKey & { kid: string, alg: string }}
+     */
+    privateJWK(): JsonWebKey & {
+        kid: string;
+        alg: string;
+    };
+    /**
+     * @returns {JsonWebKey & { kid: string, alg: string }}
+     */
+    publicJWK(): JsonWebKey & {
+        kid: string;
+        alg: string;
+    };
+    signingKey(): CryptoKey;
+    verifyingKey(): CryptoKey;
+    signingKeyRaw(): Promise<ArrayBuffer>;
+    verifyingKeyRaw(): Promise<ArrayBuffer>;
+}>>;
 /**
- * @param {JsonWebKey & { kid?: string }} jwk
+ * @param {JsonWebKey & { kid?: string, alg: string }} jwk
  */
 export function createKeyFromJWK(jwk: JsonWebKey & {
-    kid?: string;
-}): Promise<Key>;
-export type Key = {
-    kid: string;
-    alg: import('./lib/jwa').JWAlgorithm;
-    jwk: (priv?: boolean | undefined) => JsonWebKey & {
+    kid?: string | undefined;
+    alg: string;
+}): Promise<Readonly<{
+    kid(): string;
+    alg(): import("./lib/jwa.js").JWAlgorithm;
+    /**
+     * @returns {JsonWebKey & { kid: string, alg: string }}
+     */
+    privateJWK(): JsonWebKey & {
         kid: string;
+        alg: string;
     };
-    signingKey: () => Promise<ArrayBuffer | null>;
-    verifyingKey: () => Promise<ArrayBuffer | null>;
-    sign: (data: ArrayBuffer) => Promise<ArrayBuffer>;
-    verify: (data: ArrayBuffer, signature: ArrayBuffer) => Promise<boolean>;
-};
+    /**
+     * @returns {JsonWebKey & { kid: string, alg: string }}
+     */
+    publicJWK(): JsonWebKey & {
+        kid: string;
+        alg: string;
+    };
+    signingKey(): CryptoKey;
+    verifyingKey(): CryptoKey;
+    signingKeyRaw(): Promise<ArrayBuffer>;
+    verifyingKeyRaw(): Promise<ArrayBuffer>;
+}>>;
+export type Key = Awaited<ReturnType<typeof createKeyFromCryptoKey>>;

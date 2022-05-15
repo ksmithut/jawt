@@ -11,7 +11,7 @@
     "registry": "https://registry.npmjs.org"
   },
   "engines": {
-    "node": ">=15.13.x"
+    "node": ">=17"
   },
   "repository": {
     "url": "git@github.com:ksmithut/jawt.git"
@@ -21,39 +21,28 @@
     "src/**/*.js",
     "dist/**/*.ts"
   ],
-  "imports": {
-    "#webcrypto": {
-      "node": "./src/lib/webcrypto.node.js",
-      "default": "./src/lib/webcrypto.browser.js"
-    }
-  },
   "scripts": {
     "format": "prettier-standard",
     "lint": "prettier-standard --check --lint && tsc --noEmit",
+    "clean": "node -e 'fs.promises.rm(\"dist/\", { force: true, recursive: true })'",
+    "prebuild": "npm run clean",
     "build": "tsc --emitDeclarationOnly",
-    "prepublish": "tsc --emitDeclarationOnly",
-    "test": "tap --reporter=spec",
-    "coverage": "tap --coverage-report=html",
+    "prepublish": "npm run build",
+    "test:node": "NODE_V8_COVERAGE=coverage/ node --test test/",
+    "test": "tap --no-coverage --reporter=spec test/",
+    "test:coverage": "c8 --100 --reporter=html --reporter=text --reports-dir=./coverage/lcov-report -- npm run test",
     "prepare": "husky install || true"
-  },
-  "tap": {
-    "check-coverage": true,
-    "node-arg": [
-      "--no-warnings",
-      "--experimental-loader",
-      "@istanbuljs/esm-loader-hook"
-    ]
   },
   "dependencies": {},
   "devDependencies": {
-    "@istanbuljs/esm-loader-hook": "^0.1.2",
     "@ksmithut/prettier-standard": "^0.1.0",
-    "@types/node": "^17.0.26",
-    "husky": "^7.0.4",
+    "@types/node": "^17.0.32",
+    "c8": "^7.11.2",
+    "husky": "^8.0.1",
     "jsonwebtoken": "^8.5.1",
-    "lint-staged": "^12.4.0",
+    "lint-staged": "^12.4.1",
     "standard": "^17.0.0",
-    "tap": "^16.0.1",
-    "typescript": "^4.6.3"
+    "tap": "^16.2.0",
+    "typescript": "^4.6.4"
   }
 }

@@ -18,10 +18,9 @@ these libraries.
 
 # Requirements
 
-This requires at least Node.js v15.13.0 because it utilizes the
+This requires at least Node.js v17.0.0 because it utilizes the
 [WebCrypto](https://nodejs.org/dist/latest-v15.x/docs/api/webcrypto.html)
-implementation introduced in Node.js v15.0.0 as well as the global `atob` and
-`btoa` methods introduced in Node.js v15.13.0. At the time of writing this, it
+implementation introduced in Node.js v15.0.0. At the time of writing this, it
 also says this API is experimental (Stability 1), which states:
 
 > Experimental. The feature is not subject to Semantic Versioning rules.
@@ -33,6 +32,11 @@ was looking for (native JWK support, more standard signing/verifying api). So
 the actual crypto bits are still left to the professionals. This also should
 make it fairly easy to make it compatible with the browser once I figure out how
 to split the webcrypto exports.
+
+This library also utilizes [`structuredClone`](https://nodejs.org/dist/latest-v18.x/docs/api/globals.html#structuredclonevalue-options),
+which was introduced in version 17.0.0. It could probably easily be polyfiled
+with a dependency, but as one of the goals of this library is to not have any
+dependencies itself, I've decided to just require node version 17.0.0 or higher.
 
 Also, there is no CommonJS version of this library. I'm sure it's just a simple
 build process to split the two, which I'll look into when I spend more time on
@@ -48,10 +52,10 @@ async function configureApp () {
   const keyStore = await createKeyStoreFromJWKS(JSON.parse(process.env.JWKS))
   // You can get the public keys in `jwks` format to use for a
   // `/.well-known/jwks.json` endpoint
-  console.log(keyStore.jwks())
+  console.log(keyStore.publicJWKS())
 
   const token = await jwt.sign({}, keyStore)
-  const payload = await jwt.verify(token, keyStore)
+  const { payload } = await jwt.verify(token, keyStore)
 }
 ```
 
@@ -68,6 +72,7 @@ async function configureApp () {
 | `nbf` check    | ✔            | ✔    | ✔    |
 | `iat` check    | ✔            | ✔    | ✔    |
 | `jti` check    | ✔            | ✔    | ✔    |
+| `typ` check    | ?            | ✔    | ✔    |
 | None algorithm | ✔            | ✔    |      |
 | HS256          | ✔            | ✔    | ✔    |
 | HS384          | ✔            | ✔    | ✔    |
@@ -119,14 +124,14 @@ Creates a KeyStore to be used for signing and verifying.
 ```js
 import { generate, createKeyStore } from 'jawt'
 
-const keys = await Promise.all([generate('ES512'), generate('HS256')])
+const keys = await Promise.all([generate('ES512'), generate('RS256')])
 const keyStore = createKeyStore(keys)
 
 keyStore.primaryKey() // gets the first key, used for signing
 keyStore.get(keys[0].kid) // gets a key by kid, used in verifying
-keyStore.keys() // gets the list of keys in the order given
-keyStore.jwks() // { keys: [] } returns the public version of the keys in JWK format
-keyStore.jwks(true) // {keys: [] } returns the private version of the keys in JWK format
+keyStore.keys() // returns a generator that returns each key. Use `Array.from(keyStore.keys())` or `[...keyStore.keys()]` if you need an array
+keyStore.publicJWKS() // { keys: [] } returns the public version of the keys in JWK format
+keyStore.privateJWKS() // { keys: [] } returns the private version of the keys in JWK format
 ```
 
 ## `createKeyStoreFromJWKS(JWKS) => Promise<KeyStore>`
@@ -136,10 +141,10 @@ Creates a KeyStore from a JSON Web Key Set
 ```js
 import { generate, createKeyStore, createKeyStoreFromJWKS } from 'jawt'
 
-const keys = await Promise.all([generate('ES512'), generate('HS256')])
+const keys = await Promise.all([generate('ES512'), generate('RS256')])
 const keyStore = createKeyStore(keys)
 
-const jwks = keyStore.jwks(true)
+const jwks = keyStore.privateJWKS()
 
 // You could then export it and use it in an environment variable
 // console.log(JSON.stringify(jwks))
@@ -162,7 +167,7 @@ const token = await jwt.sign({}, keyStore)
 const tokenWithOptions = await jwt.sign({ userId: '123' }, keyStore, {
   // Date to use for date based operations
   // type: Date
-  now: new Date(),
+  clock: new Date(),
 
   // turns into `iss` claim
   // type: string
@@ -182,7 +187,6 @@ const tokenWithOptions = await jwt.sign({ userId: '123' }, keyStore, {
   // turns into `exp` claim
   // type: Date | number
   // if it is a number it should be the unix timestamp (seconds) you want it to expire
-  // Takes precedence over expiresAt
   // Defaults to `undefined`
   expiresAt: new Date(),
 
@@ -235,8 +239,8 @@ const token2 = await jwt.sign({}, newKeyStore)
 // attempt to verify the JWT data against all the keys until finds the key that
 // validates against it. It will only check keys whose algorithms match up
 // against the `alg` property in the jwt header.
-const payload1 = await jwt.verify(token1, newKeyStore)
-const payload2 = await jwt.verify(token2, newKeyStore)
+const { payload: payload1 } = await jwt.verify(token1, newKeyStore)
+const { payload: payload2 } = await jwt.verify(token2, newKeyStore)
 
 const token3 = await jwt.sign({}, newKeyStore, {
   issuer: 'my-issuer',
@@ -246,11 +250,11 @@ const token3 = await jwt.sign({}, newKeyStore, {
   jwtId: '4e351afe-026d-44e0-9630-14fd279e70cf'
 })
 
-const payload3 = await jwt.verify(token3, newKeyStore, {
+const { payload: payload3 } = await jwt.verify(token3, newKeyStore, {
   // Date to use for date based operations
   // type: Date
   // Defaults to `new Date()`
-  now: new Date(),
+  clock: new Date(),
 
   // Checks the `iss` claim
   // type: string | string[]
@@ -342,13 +346,3 @@ if (result.success === false) {
 - `NOT_BEFORE` - The token was checked before the `nbf` claim.
 
 - `TOKEN_EXPIRED` - The token was checked after the `exp` claim.
-
-- `AGE_NOT_ACCEPTABLE` - The token was older than the allowed `maxAge` option.
-
-- `ISSUER_NOT_ACCEPTED` - The `iss` claim did not match the `issuer` option.
-
-- `AUDIENCE_NOT_ACCEPTED` - The `aud` claim did not match the `audience` option.
-
-- `SUBJECT_NOT_ACCEPTED` - The `sub` claim did not match the `subject` option.
-
-- `JWT_ID_NOT_ACCEPTED` - The `jti` claim did not match the `jwtId` option.

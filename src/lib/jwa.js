@@ -1,15 +1,12 @@
-import webcrypto from '#webcrypto'
-import { InvalidModulusLength, UnsupportedAlgorithm } from './errors.js'
+import webcrypto from './webcrypto.node.js'
 
 /**
  * @typedef {'HS256' | 'HS384' | 'HS512'} HSAlgorithm
  * @typedef {'RS256' | 'RS384' | 'RS512'} RSAlgorithm
  * @typedef {'PS256' | 'PS384' | 'PS512'} PSAlgorithm
  * @typedef {'ES256' | 'ES384' | 'ES512'} ESAlgorithm
- * TODO support 'ES256K'
- * TODO {'EdDSA'} EdDSAAlgorithm
- * TODO {'Ed25519' | 'Ed448'} EdDSACurve
- *
+ * TODO support ES256K
+ * TODO support 'EdDSA' (crv: 'Ed25519' | 'Ed448')
  * @typedef {HSAlgorithm | RSAlgorithm | PSAlgorithm | ESAlgorithm} JWAlgorithm
  */
 
@@ -30,7 +27,7 @@ const SUPPORTED_ALGORITHMS = new Set([
 ])
 
 /**
- * @param {string} alg
+ * @param {unknown} alg
  * @return {alg is JWAlgorithm}
  */
 export function isAlgorithm (alg) {
@@ -58,11 +55,7 @@ function getModulusLength (modulusLength = 2048) {
  */
 export async function generateHS (length) {
   return webcrypto.subtle.generateKey(
-    {
-      name: 'HMAC',
-      hash: `SHA-${length}`,
-      length
-    },
+    { name: 'HMAC', hash: `SHA-${length}`, length },
     true,
     ['sign', 'verify']
   )
@@ -109,7 +102,7 @@ export async function generateRS (length, options) {
 }
 
 /**
- * @param {string} curve
+ * @param {'P-256'|'P-384'|'P-521'} curve
  */
 export async function generateES (curve) {
   return webcrypto.subtle
@@ -118,7 +111,7 @@ export async function generateES (curve) {
 }
 
 /**
- * @param {string} alg
+ * @param {JWAlgorithm} alg
  */
 export function subtleDSA (alg) {
   switch (alg) {
@@ -158,8 +151,29 @@ export function subtleDSA (alg) {
       return { hash: 'SHA-384', name: 'ECDSA', namedCurve: 'P-384' }
     case 'ES512':
       return { hash: 'SHA-512', name: 'ECDSA', namedCurve: 'P-521' }
-    /* istanbul ignore next */
     default:
       throw new UnsupportedAlgorithm(alg)
+  }
+}
+
+export class InvalidModulusLength extends Error {
+  constructor () {
+    super('modulusLength must not be less than 2048')
+    Error.captureStackTrace(this, this.constructor)
+    this.name = this.constructor.name
+    this.code = 'INVALID_MODULUS_LENGTH'
+  }
+}
+
+export class UnsupportedAlgorithm extends Error {
+  /**
+   * @param {string} algorithm
+   */
+  constructor (algorithm) {
+    super(`Unsupported algorithm: "${algorithm}"`)
+    Error.captureStackTrace(this, this.constructor)
+    this.name = this.constructor.name
+    this.code = 'UNSUPPORTED_JWA_ALGORITHM'
+    this.algorithm = algorithm
   }
 }
