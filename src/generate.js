@@ -3,6 +3,7 @@ import {
   generatePS,
   generateRS,
   generateES,
+  generateEd,
   UnsupportedAlgorithm
 } from './lib/jwa.js'
 import { createKeyFromCryptoKey } from './key.js'
@@ -13,6 +14,7 @@ import { createKeyFromCryptoKey } from './key.js'
  * @param {JWAlgorithm} alg
  * @param {object} [options]
  * @param {number} [options.modulusLength]
+ * @param {import('./lib/jwa.js').EdDSACurve} [options.curve]
  */
 export async function generateCryptoKey (alg, options) {
   switch (alg) {
@@ -40,6 +42,16 @@ export async function generateCryptoKey (alg, options) {
       return generateES('P-384')
     case 'ES512':
       return generateES('P-521')
+    case 'EdDSA':
+      switch (options?.curve) {
+        case undefined:
+        case 'Ed25519':
+          return generateEd('Ed25519')
+        case 'Ed448':
+          return generateEd('Ed448')
+        default:
+          throw new UnsupportedAlgorithm(options?.curve)
+      }
     default:
       throw new UnsupportedAlgorithm(alg)
   }
@@ -49,6 +61,7 @@ export async function generateCryptoKey (alg, options) {
  * @param {JWAlgorithm} alg
  * @param {object} [options]
  * @param {number} [options.modulusLength]
+ * @param {import('./lib/jwa.js').EdDSACurve} [options.curve]
  */
 async function generate (alg, options) {
   return generateCryptoKey(alg, options).then(cryptoKey =>

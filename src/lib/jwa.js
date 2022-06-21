@@ -1,13 +1,16 @@
 import webcrypto from './webcrypto.node.js'
 
 /**
+ * @typedef {'Ed25519'|'Ed448'} EdDSACurve
+ * @typedef {'P-256'|'P-384'|'P-521'} ECCurve
+ *
  * @typedef {'HS256' | 'HS384' | 'HS512'} HSAlgorithm
  * @typedef {'RS256' | 'RS384' | 'RS512'} RSAlgorithm
  * @typedef {'PS256' | 'PS384' | 'PS512'} PSAlgorithm
  * @typedef {'ES256' | 'ES384' | 'ES512'} ESAlgorithm
+ * @typedef {'EdDSA'} EdAlgorithm
  * TODO support ES256K
- * TODO support 'EdDSA' (crv: 'Ed25519' | 'Ed448')
- * @typedef {HSAlgorithm | RSAlgorithm | PSAlgorithm | ESAlgorithm} JWAlgorithm
+ * @typedef {HSAlgorithm | RSAlgorithm | PSAlgorithm | ESAlgorithm | EdAlgorithm} JWAlgorithm
  */
 
 /** @type {Set<JWAlgorithm>} */
@@ -23,7 +26,8 @@ const SUPPORTED_ALGORITHMS = new Set([
   'PS512',
   'ES256',
   'ES384',
-  'ES512'
+  'ES512',
+  'EdDSA'
 ])
 
 export function supportedAlgorithms () {
@@ -97,7 +101,7 @@ export async function generateRS (length, options) {
         name: 'RSASSA-PKCS1-v1_5',
         hash: `SHA-${length}`,
         publicExponent: new Uint8Array([0x01, 0x00, 0x01]),
-        modulusLength: getModulusLength(options?.modulusLength)
+        modulusLength: getModulusLength(options.modulusLength)
       },
       true,
       ['sign', 'verify']
@@ -106,7 +110,7 @@ export async function generateRS (length, options) {
 }
 
 /**
- * @param {'P-256'|'P-384'|'P-521'} curve
+ * @param {ECCurve} curve
  */
 export async function generateES (curve) {
   return webcrypto.subtle
@@ -115,9 +119,22 @@ export async function generateES (curve) {
 }
 
 /**
- * @param {JWAlgorithm} alg
+ * @param {'Ed25519'|'Ed448'} curve
  */
-export function subtleDSA (alg) {
+export async function generateEd (curve) {
+  return (
+    webcrypto.subtle
+      .generateKey({ name: curve }, true, ['sign', 'verify'])
+      // @ts-ignore
+      .then(({ privateKey }) => privateKey)
+  )
+}
+
+/**
+ * @param {JWAlgorithm} alg
+ * @param {KeyAlgorithm} algorithm
+ */
+export function subtleDSA (alg, algorithm) {
   switch (alg) {
     case 'HS256':
       return { hash: 'SHA-256', name: 'HMAC' }
@@ -155,6 +172,15 @@ export function subtleDSA (alg) {
       return { hash: 'SHA-384', name: 'ECDSA', namedCurve: 'P-384' }
     case 'ES512':
       return { hash: 'SHA-512', name: 'ECDSA', namedCurve: 'P-521' }
+    case 'EdDSA':
+      switch (algorithm.name) {
+        case 'Ed25519':
+          return { name: 'Ed25519' }
+        case 'Ed448':
+          return { name: 'Ed448' }
+        default:
+          throw new UnsupportedAlgorithm(algorithm.name)
+      }
     default:
       throw new UnsupportedAlgorithm(alg)
   }
@@ -171,7 +197,7 @@ export class InvalidModulusLength extends Error {
 
 export class UnsupportedAlgorithm extends Error {
   /**
-   * @param {string} algorithm
+   * @param {string} [algorithm]
    */
   constructor (algorithm) {
     super(`Unsupported algorithm: "${algorithm}"`)

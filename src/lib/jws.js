@@ -11,7 +11,11 @@ import { subtleDSA } from './jwa.js'
 export async function sign (alg, cryptoKey, data) {
   /* c8 ignore next */
   if (cryptoKey.type === 'public') throw new InvalidSigningKey()
-  return webcrypto.subtle.sign(subtleDSA(alg), cryptoKey, data)
+  return webcrypto.subtle.sign(
+    subtleDSA(alg, cryptoKey.algorithm),
+    cryptoKey,
+    data
+  )
 }
 
 /**
@@ -21,7 +25,12 @@ export async function sign (alg, cryptoKey, data) {
  * @param {ArrayBuffer} data
  */
 export async function verify (alg, cryptoKey, signature, data) {
-  return webcrypto.subtle.verify(subtleDSA(alg), cryptoKey, signature, data)
+  return webcrypto.subtle.verify(
+    subtleDSA(alg, cryptoKey.algorithm),
+    cryptoKey,
+    signature,
+    data
+  )
 }
 
 export class InvalidSigningKey extends Error {

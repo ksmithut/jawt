@@ -195,7 +195,8 @@ test('jawt', async t => {
       'PS512',
       'ES256',
       'ES384',
-      'ES512'
+      'ES512',
+      'EdDSA'
     ])
   })
 })
@@ -585,7 +586,8 @@ test('algorithm support', async t => {
     'PS512',
     'ES256',
     'ES384',
-    'ES512'
+    'ES512',
+    'EdDSA'
   ]
   for (const alg of algorithms) {
     t.test(`Can generate and verify key with ${alg}`, async () => {
@@ -611,6 +613,30 @@ test('algorithm support', async t => {
           await generate(alg, { modulusLength: 4096 })
         ])
         const key = keyStore.primaryKey()
+        const clock = new Date()
+        const clockTimestamp = Math.floor(clock.getTime() / 1000)
+        const token = await jwt.sign({}, keyStore, { clock })
+        const result = await jwt.verify(token, keyStore)
+        assert.deepStrictEqual(result, {
+          payload: { iat: clockTimestamp },
+          header: { alg: key.alg(), kid: key.kid(), typ: 'JWT' }
+        })
+      }
+    )
+  }
+  /** @type {['EdDSA', { curve: 'Ed25519'|'Ed448' }][]} */
+  const edAlgorithms = [
+    ['EdDSA', { curve: 'Ed25519' }],
+    ['EdDSA', { curve: 'Ed448' }]
+  ]
+  for (const [alg, options] of edAlgorithms) {
+    t.test(
+      `Can generate and verify key with ${alg} and curve ${options.curve}`,
+      async () => {
+        const keyStore = createKeyStore([await generate(alg, options)])
+        const key = keyStore.primaryKey()
+        console.log(key.privateJWK())
+        console.log(key.publicJWK())
         const clock = new Date()
         const clockTimestamp = Math.floor(clock.getTime() / 1000)
         const token = await jwt.sign({}, keyStore, { clock })
