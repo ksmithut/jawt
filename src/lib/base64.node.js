@@ -36,10 +36,9 @@ export function base64urlDecodeToArrayBuffer (data) {
  * @param {Buffer} buffer
  */
 function bufferToArrayBuffer (buffer) {
-  /* c8 ignore next 6 */
+  /* c8 ignore next 5 */
   if (
-    buffer.byteOffset === 0 &&
-    buffer.byteLength === buffer.buffer.byteLength
+    buffer.byteOffset === 0 && buffer.byteLength === buffer.buffer.byteLength
   ) {
     return buffer.buffer
   }

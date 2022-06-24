@@ -43,6 +43,7 @@ export function createKeyStore (keys) {
       // @ts-ignore
       return keysByKid.get(kid) ?? null
     },
+    // dprint-ignore
     * keys () {
       for (const key of keys) yield key
     },

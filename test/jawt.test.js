@@ -1,15 +1,15 @@
-import assert from 'node:assert'
-import fs from 'node:fs/promises'
-import { Buffer } from 'node:buffer'
-import tap from 'tap'
 import jsonwebtoken from 'jsonwebtoken'
+import assert from 'node:assert'
+import { Buffer } from 'node:buffer'
+import fs from 'node:fs/promises'
+import tap from 'tap'
 import {
-  generate,
-  jwt,
-  createKeyStore,
-  createKeyStoreFromJWKS,
   createKeyFromCryptoKey,
   createKeyFromJWK,
+  createKeyStore,
+  createKeyStoreFromJWKS,
+  generate,
+  jwt,
   supportedAlgorithms
 } from '../src/index.js'
 
@@ -33,6 +33,7 @@ test('jawt', async t => {
     const payload = jsonwebtoken.verify(
       token,
       Buffer.from(await key.verifyingKeyRaw()),
+      // @ts-ignore
       { algorithms: [key.alg()] }
     )
     assert.deepStrictEqual(payload, { iat: clockTimestamp })
@@ -43,6 +44,7 @@ test('jawt', async t => {
     const key = keyStore.primaryKey()
     const clock = new Date()
     const clockTimestamp = Math.floor(clock.getTime() / 1000)
+    // @ts-ignore
     const token = jsonwebtoken.sign(
       { iat: clockTimestamp },
       Buffer.from(await key.signingKeyRaw()),
@@ -81,11 +83,13 @@ test('jawt', async t => {
       const newKey = await generate('ES256')
       const oldKey = await generate('HS256')
       const keyStore = createKeyStore([newKey, oldKey])
+      // @ts-ignore
       const newToken = jsonwebtoken.sign(
         { type: 'new' },
         Buffer.from(await newKey.signingKeyRaw()),
         { algorithm: newKey.alg() }
       )
+      // @ts-ignore
       const oldToken = jsonwebtoken.sign(
         { type: 'old' },
         Buffer.from(await oldKey.signingKeyRaw()),
@@ -101,6 +105,7 @@ test('jawt', async t => {
   t.test('fails if kid matches but signature fails', async () => {
     const key1 = await generate('HS256')
     const keyStore = createKeyStore([key1])
+    // @ts-ignore
     const token = jsonwebtoken.sign({}, 'secretsecret', {
       algorithm: key1.alg(),
       keyid: key1.kid()
@@ -177,6 +182,7 @@ test('jawt', async t => {
     const payload = jsonwebtoken.verify(
       token,
       Buffer.from(await key.verifyingKeyRaw()),
+      // @ts-ignore
       { algorithms: [key.alg()] }
     )
     assert.deepStrictEqual(payload, { iat: clockTimestamp })
@@ -208,63 +214,50 @@ test('option claims', async t => {
   /** @type {[string, import('../src/jawt.js').AttachStandardClaimsParams, import('../src/jawt.js').PayloadWithStandardClaims][]} */
   const optionPayloads = [
     ['issuer', { issuer: 'test.issuer', clock }, { iss: 'test.issuer', iat }],
-    [
-      'subject',
-      { subject: 'test.subject', clock },
-      { sub: 'test.subject', iat }
-    ],
-    [
-      'audience string',
-      { audience: 'test.audience', clock },
-      { aud: 'test.audience', iat }
-    ],
-    [
-      'audience array',
-      { audience: ['test1', 'test2'], clock },
-      { aud: ['test1', 'test2'], iat }
-    ],
-    [
-      'expiresAt Date',
-      { expiresAt: new Date(1652444004292), clock },
-      { exp: 1652444004, iat }
-    ],
-    [
-      'expiresAt number',
-      { expiresAt: 1652444004, clock },
-      { exp: 1652444004, iat }
-    ],
-    [
-      'expiresIn',
-      { expiresIn: 60, clock: new Date(1652444004292) },
-      { exp: 1652444064, iat: 1652444004 }
-    ],
-    [
-      'notBefore Date',
-      { notBefore: new Date(1652444004292), clock },
-      { nbf: 1652444004, iat }
-    ],
-    [
-      'notBefore number',
-      { notBefore: 1652444004, clock },
-      { nbf: 1652444004, iat }
-    ],
-    [
-      'issuedAt default',
-      { clock: new Date(1652444004292) },
-      { iat: 1652444004 }
-    ],
+    ['subject', { subject: 'test.subject', clock }, {
+      sub: 'test.subject',
+      iat
+    }],
+    ['audience string', { audience: 'test.audience', clock }, {
+      aud: 'test.audience',
+      iat
+    }],
+    ['audience array', { audience: ['test1', 'test2'], clock }, {
+      aud: ['test1', 'test2'],
+      iat
+    }],
+    ['expiresAt Date', { expiresAt: new Date(1652444004292), clock }, {
+      exp: 1652444004,
+      iat
+    }],
+    ['expiresAt number', { expiresAt: 1652444004, clock }, {
+      exp: 1652444004,
+      iat
+    }],
+    ['expiresIn', { expiresIn: 60, clock: new Date(1652444004292) }, {
+      exp: 1652444064,
+      iat: 1652444004
+    }],
+    ['notBefore Date', { notBefore: new Date(1652444004292), clock }, {
+      nbf: 1652444004,
+      iat
+    }],
+    ['notBefore number', { notBefore: 1652444004, clock }, {
+      nbf: 1652444004,
+      iat
+    }],
+    ['issuedAt default', { clock: new Date(1652444004292) }, {
+      iat: 1652444004
+    }],
     ['issuedAt false', { issuedAt: false }, {}],
-    [
-      'issuedAt Date',
-      { issuedAt: new Date(1652444004292) },
-      { iat: 1652444004 }
-    ],
+    ['issuedAt Date', { issuedAt: new Date(1652444004292) }, {
+      iat: 1652444004
+    }],
     ['issuedAt number', { issuedAt: 1652444004 }, { iat: 1652444004 }],
-    [
-      'jwtId',
-      { jwtId: 'fce0865f-c96e-4352-b29c-8efdf66c3d8e', clock },
-      { jti: 'fce0865f-c96e-4352-b29c-8efdf66c3d8e', iat }
-    ]
+    ['jwtId', { jwtId: 'fce0865f-c96e-4352-b29c-8efdf66c3d8e', clock }, {
+      jti: 'fce0865f-c96e-4352-b29c-8efdf66c3d8e',
+      iat
+    }]
   ]
 
   for (const [name, options, expectedPayload] of optionPayloads) {
@@ -303,78 +296,42 @@ test('option claims', async t => {
   })
 
   /** @type {[string, object, object][]} */
-  const optionErrors = [
-    [
-      'issuer',
-      { issuer: 123 },
-      {
-        name: 'InvalidClaim',
-        message: '"iss" must be a string or undefined',
-        claim: 'iss',
-        givenValue: 123
-      }
-    ],
-    [
-      'subject',
-      { subject: 123 },
-      {
-        name: 'InvalidClaim',
-        message: '"sub" must be a string or undefined',
-        claim: 'sub',
-        givenValue: 123
-      }
-    ],
-    [
-      'audience',
-      { audience: [['aud']] },
-      {
-        name: 'InvalidClaim',
-        message: '"aud" must be a string, array of strings, or undefined',
-        claim: 'aud',
-        givenValue: [['aud']]
-      }
-    ],
-    [
-      'expiresAt',
-      { expiresAt: 'foobar' },
-      {
-        name: 'InvalidClaim',
-        message: '"exp" must be an integer or undefined',
-        claim: 'exp',
-        givenValue: 'foobar'
-      }
-    ],
-    [
-      'notBefore',
-      { notBefore: 'foobar' },
-      {
-        name: 'InvalidClaim',
-        message: '"nbf" must be an integer or undefined',
-        claim: 'nbf',
-        givenValue: 'foobar'
-      }
-    ],
-    [
-      'issuedAt',
-      { issuedAt: 'foobar' },
-      {
-        name: 'InvalidClaim',
-        message: '"iat" must be an integer or undefined',
-        claim: 'iat',
-        givenValue: 'foobar'
-      }
-    ],
-    [
-      'jwtId',
-      { jwtId: 123 },
-      {
-        name: 'InvalidClaim',
-        message: '"jti" must be a string or undefined',
-        claim: 'jti',
-        givenValue: 123
-      }
-    ]
-  ]
+  const optionErrors = [['issuer', { issuer: 123 }, {
+    name: 'InvalidClaim',
+    message: '"iss" must be a string or undefined',
+    claim: 'iss',
+    givenValue: 123
+  }], ['subject', { subject: 123 }, {
+    name: 'InvalidClaim',
+    message: '"sub" must be a string or undefined',
+    claim: 'sub',
+    givenValue: 123
+  }], ['audience', { audience: [['aud']] }, {
+    name: 'InvalidClaim',
+    message: '"aud" must be a string, array of strings, or undefined',
+    claim: 'aud',
+    givenValue: [['aud']]
+  }], ['expiresAt', { expiresAt: 'foobar' }, {
+    name: 'InvalidClaim',
+    message: '"exp" must be an integer or undefined',
+    claim: 'exp',
+    givenValue: 'foobar'
+  }], ['notBefore', { notBefore: 'foobar' }, {
+    name: 'InvalidClaim',
+    message: '"nbf" must be an integer or undefined',
+    claim: 'nbf',
+    givenValue: 'foobar'
+  }], ['issuedAt', { issuedAt: 'foobar' }, {
+    name: 'InvalidClaim',
+    message: '"iat" must be an integer or undefined',
+    claim: 'iat',
+    givenValue: 'foobar'
+  }], ['jwtId', { jwtId: 123 }, {
+    name: 'InvalidClaim',
+    message: '"jti" must be a string or undefined',
+    claim: 'jti',
+    givenValue: 123
+  }]]
   for (const [name, options, error] of optionErrors) {
     t.test(`invalid option ${name}`, async () => {
       await assert.rejects(() => jwt.sign({}, keyStore, options), error)
@@ -382,130 +339,88 @@ test('option claims', async t => {
   }
 
   /** @type {[string, import('../src/index.js').jwt.AttachStandardClaimsParams, import('../src/index.js').jwt.VerifyStandardClaimsParams, object][]} */
-  const validateFailureOptions = [
-    [
-      'maxAge',
-      { clock },
-      { clock: new Date(clock.getTime() + 50000), maxAge: 30 },
-      {
-        name: 'InvalidClaim',
-        claim: 'iat',
-        message: 'JWT is too old',
-        code: 'INVALID_CLAIM'
-      }
-    ],
-    [
-      'maxAge with clockTolerance',
-      { clock },
-      {
-        clock: new Date(clock.getTime() + 100000),
-        maxAge: 90,
-        clockTolerance: 5
-      },
-      {
-        name: 'InvalidClaim',
-        claim: 'iat',
-        message: 'JWT is too old',
-        code: 'INVALID_CLAIM'
-      }
-    ],
-    [
-      'expiration',
-      { clock, expiresIn: 50 },
-      { clock: new Date(clock.getTime() + 100000) },
-      { name: 'TokenExpired', code: 'TOKEN_EXPIRED', message: 'JWT expired' }
-    ],
-    [
-      'notBefore',
-      { clock, notBefore: clock },
-      { clock: new Date(clock.getTime() - 50000) },
-      { name: 'NotBefore', code: 'NOT_BEFORE', message: 'JWT not active' }
-    ],
-    [
-      'issuer string',
-      { clock, issuer: 'test.issuer' },
-      { issuer: 'prod.issuer' },
-      {
-        name: 'InvalidClaim',
-        code: 'INVALID_CLAIM',
-        message: '"iss" did not match expected value',
-        claim: 'iss',
-        givenValue: 'test.issuer',
-        expectedValue: 'prod.issuer'
-      }
-    ],
-    [
-      'issuer array',
-      { clock, issuer: 'test.issuer' },
-      { issuer: ['prod.issuer', 'test.foobar'] },
-      {
-        name: 'InvalidClaim',
-        code: 'INVALID_CLAIM',
-        message: '"iss" did not match expected value',
-        claim: 'iss',
-        givenValue: 'test.issuer',
-        expectedValue: ['prod.issuer', 'test.foobar']
-      }
-    ],
-    [
-      'subject',
-      { clock, subject: 'test.subject' },
-      { subject: 'prod.subject' },
-      {
-        name: 'InvalidClaim',
-        code: 'INVALID_CLAIM',
-        message: '"sub" did not match expected value',
-        claim: 'sub',
-        givenValue: 'test.subject',
-        expectedValue: 'prod.subject'
-      }
-    ],
-    [
-      'audience string',
-      { clock, audience: ['test.audience'] },
-      { audience: 'prod.audience' },
-      {
-        name: 'InvalidClaim',
-        code: 'INVALID_CLAIM',
-        message: '"aud" did not match expected value',
-        claim: 'aud',
-        givenValue: ['test.audience'],
-        expectedValue: 'prod.audience'
-      }
-    ],
-    [
-      'audience array',
-      { clock, audience: 'test.audience' },
-      { audience: [/^prod\./, 'stage.audience'] },
-      {
-        name: 'InvalidClaim',
-        code: 'INVALID_CLAIM',
-        message: '"aud" did not match expected value',
-        claim: 'aud',
-        givenValue: 'test.audience'
-      }
-    ],
-    [
-      'jwtId',
-      { clock, jwtId: '43da3783-cea7-44c1-949b-bd7c807506e6' },
-      { jwtId: '273c8860-722f-48c8-864d-e316ccf20f93' },
-      {
-        name: 'InvalidClaim',
-        code: 'INVALID_CLAIM',
-        message: '"jti" did not match expected value',
-        claim: 'jti',
-        givenValue: '43da3783-cea7-44c1-949b-bd7c807506e6',
-        expectedValue: '273c8860-722f-48c8-864d-e316ccf20f93'
-      }
-    ]
-  ]
+  const validateFailureOptions = [['maxAge', { clock }, {
+    clock: new Date(clock.getTime() + 50000),
+    maxAge: 30
+  }, {
+    name: 'InvalidClaim',
+    claim: 'iat',
+    message: 'JWT is too old',
+    code: 'INVALID_CLAIM'
+  }], ['maxAge with clockTolerance', { clock }, {
+    clock: new Date(clock.getTime() + 100000),
+    maxAge: 90,
+    clockTolerance: 5
+  }, {
+    name: 'InvalidClaim',
+    claim: 'iat',
+    message: 'JWT is too old',
+    code: 'INVALID_CLAIM'
+  }], ['expiration', { clock, expiresIn: 50 }, {
+    clock: new Date(clock.getTime() + 100000)
+  }, { name: 'TokenExpired', code: 'TOKEN_EXPIRED', message: 'JWT expired' }], [
+    'notBefore',
+    { clock, notBefore: clock },
+    { clock: new Date(clock.getTime() - 50000) },
+    { name: 'NotBefore', code: 'NOT_BEFORE', message: 'JWT not active' }
+  ], ['issuer string', { clock, issuer: 'test.issuer' }, {
+    issuer: 'prod.issuer'
+  }, {
+    name: 'InvalidClaim',
+    code: 'INVALID_CLAIM',
+    message: '"iss" did not match expected value',
+    claim: 'iss',
+    givenValue: 'test.issuer',
+    expectedValue: 'prod.issuer'
+  }], ['issuer array', { clock, issuer: 'test.issuer' }, {
+    issuer: ['prod.issuer', 'test.foobar']
+  }, {
+    name: 'InvalidClaim',
+    code: 'INVALID_CLAIM',
+    message: '"iss" did not match expected value',
+    claim: 'iss',
+    givenValue: 'test.issuer',
+    expectedValue: ['prod.issuer', 'test.foobar']
+  }], ['subject', { clock, subject: 'test.subject' }, {
+    subject: 'prod.subject'
+  }, {
+    name: 'InvalidClaim',
+    code: 'INVALID_CLAIM',
+    message: '"sub" did not match expected value',
+    claim: 'sub',
+    givenValue: 'test.subject',
+    expectedValue: 'prod.subject'
+  }], ['audience string', { clock, audience: ['test.audience'] }, {
+    audience: 'prod.audience'
+  }, {
+    name: 'InvalidClaim',
+    code: 'INVALID_CLAIM',
+    message: '"aud" did not match expected value',
+    claim: 'aud',
+    givenValue: ['test.audience'],
+    expectedValue: 'prod.audience'
+  }], ['audience array', { clock, audience: 'test.audience' }, {
+    audience: [/^prod\./, 'stage.audience']
+  }, {
+    name: 'InvalidClaim',
+    code: 'INVALID_CLAIM',
+    message: '"aud" did not match expected value',
+    claim: 'aud',
+    givenValue: 'test.audience'
+  }], ['jwtId', { clock, jwtId: '43da3783-cea7-44c1-949b-bd7c807506e6' }, {
+    jwtId: '273c8860-722f-48c8-864d-e316ccf20f93'
+  }, {
+    name: 'InvalidClaim',
+    code: 'INVALID_CLAIM',
+    message: '"jti" did not match expected value',
+    claim: 'jti',
+    givenValue: '43da3783-cea7-44c1-949b-bd7c807506e6',
+    expectedValue: '273c8860-722f-48c8-864d-e316ccf20f93'
+  }]]
 
-  for (const [
-    name,
-    payloadOptions,
-    verifyOptions,
-    error
-  ] of validateFailureOptions) {
+  for (
+    const [name, payloadOptions, verifyOptions, error] of validateFailureOptions
+  ) {
     t.test(`validate ${name}`, async () => {
       const token = await jwt.sign({}, keyStore, payloadOptions)
       await assert.rejects(
@@ -523,7 +438,10 @@ test('jwks support', async t => {
 
   const publicJWKS = JSON.parse(
     await fs.readFile(
-      new URL('./fixtures/public-jwks.json', import.meta.url),
+      new URL(
+        './fixtures/public-jwks.json',
+        import.meta.url
+      ),
       'utf-8'
     )
   )
@@ -535,9 +453,7 @@ test('jwks support', async t => {
     const token = await jwt.sign({}, keyStore, { clock })
     const result = await jwt.verify(token, keyStore)
     assert.deepStrictEqual(result, {
-      payload: {
-        iat: clockTimestamp
-      },
+      payload: { iat: clockTimestamp },
       header: {
         typ: 'JWT',
         alg: keyStore.primaryKey().alg(),
@@ -719,7 +635,8 @@ test('edge case errors', async t => {
       Buffer.from('notjson').toString('base64url'),
       Buffer.from('{}').toString('base64url'),
       ''
-    ].join('.')
+    ]
+      .join('.')
     await assert.rejects(() => jwt.verify(token, keyStore), {
       name: 'InvalidJSON',
       code: 'INVALID_JSON',
@@ -733,7 +650,8 @@ test('edge case errors', async t => {
       Buffer.from('"notobject"').toString('base64url'),
       Buffer.from('{}').toString('base64url'),
       ''
-    ].join('.')
+    ]
+      .join('.')
     await assert.rejects(() => jwt.verify(token, keyStore), {
       name: 'MalformedJWT',
       code: 'MALFORMED_JWT',
@@ -747,7 +665,8 @@ test('edge case errors', async t => {
       Buffer.from('{}').toString('base64url'),
       Buffer.from('{}').toString('base64url'),
       ''
-    ].join('.')
+    ]
+      .join('.')
     await assert.rejects(() => jwt.verify(token, keyStore), {
       name: 'MalformedJWT',
       code: 'MALFORMED_JWT',
@@ -761,7 +680,8 @@ test('edge case errors', async t => {
       Buffer.from('{"typ":"JWT"}').toString('base64url'),
       Buffer.from('{}').toString('base64url'),
       ''
-    ].join('.')
+    ]
+      .join('.')
     await assert.rejects(() => jwt.verify(token, keyStore), {
       name: 'InvalidAlgorithm',
       code: 'INVALID_ALGORITHM',
@@ -775,7 +695,8 @@ test('edge case errors', async t => {
       Buffer.from('{"typ":"JWT","alg":"ES256","kid":[]}').toString('base64url'),
       Buffer.from('{}').toString('base64url'),
       ''
-    ].join('.')
+    ]
+      .join('.')
     await assert.rejects(() => jwt.verify(token, keyStore), {
       name: 'InvalidKeyId',
       code: 'INVALID_KEY_ID',
@@ -791,7 +712,8 @@ test('edge case errors', async t => {
       ),
       Buffer.from('[]').toString('base64url'),
       ''
-    ].join('.')
+    ]
+      .join('.')
     await assert.rejects(() => jwt.verify(token, keyStore), {
       name: 'MalformedJWT',
       code: 'MALFORMED_JWT',

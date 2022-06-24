@@ -1,6 +1,6 @@
-import * as v from './validate.js'
-import { clone, dateToTimestamp, toArray } from './utils.js'
 import { InvalidClaim, JsonWebTokenError } from './jwt.errors.js'
+import { clone, dateToTimestamp, toArray } from './utils.js'
+import * as v from './validate.js'
 
 /**
  * @typedef {object} StandardClaims
@@ -15,43 +15,35 @@ import { InvalidClaim, JsonWebTokenError } from './jwt.errors.js'
 
 /** @typedef {StandardClaims & import('./jwt.js').JWTPayload} PayloadWithStandardClaims */
 
-const STANDARD_CLAIM_SCHEMAS = [
-  {
-    claim: 'iss',
-    isValid: v.optional(v.isString),
-    message: '"iss" must be a string or undefined'
-  },
-  {
-    claim: 'sub',
-    isValid: v.optional(v.isString),
-    message: '"sub" must be a string or undefined'
-  },
-  {
-    claim: 'aud',
-    isValid: v.optional(v.or(v.isString, v.isArrayOf(v.isString))),
-    message: '"aud" must be a string, array of strings, or undefined'
-  },
-  {
-    claim: 'exp',
-    isValid: v.optional(v.isInteger),
-    message: '"exp" must be an integer or undefined'
-  },
-  {
-    claim: 'nbf',
-    isValid: v.optional(v.isInteger),
-    message: '"nbf" must be an integer or undefined'
-  },
-  {
-    claim: 'iat',
-    isValid: v.optional(v.isInteger),
-    message: '"iat" must be an integer or undefined'
-  },
-  {
-    claim: 'jti',
-    isValid: v.optional(v.isString),
-    message: '"jti" must be a string or undefined'
-  }
-]
+const STANDARD_CLAIM_SCHEMAS = [{
+  claim: 'iss',
+  isValid: v.optional(v.isString),
+  message: '"iss" must be a string or undefined'
+}, {
+  claim: 'sub',
+  isValid: v.optional(v.isString),
+  message: '"sub" must be a string or undefined'
+}, {
+  claim: 'aud',
+  isValid: v.optional(v.or(v.isString, v.isArrayOf(v.isString))),
+  message: '"aud" must be a string, array of strings, or undefined'
+}, {
+  claim: 'exp',
+  isValid: v.optional(v.isInteger),
+  message: '"exp" must be an integer or undefined'
+}, {
+  claim: 'nbf',
+  isValid: v.optional(v.isInteger),
+  message: '"nbf" must be an integer or undefined'
+}, {
+  claim: 'iat',
+  isValid: v.optional(v.isInteger),
+  message: '"iat" must be an integer or undefined'
+}, {
+  claim: 'jti',
+  isValid: v.optional(v.isString),
+  message: '"jti" must be a string or undefined'
+}]
 
 /**
  * @param {import('./jwt.js').JWTPayload} claims

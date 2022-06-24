@@ -1,7 +1,7 @@
-import webcrypto from './webcrypto.node.js'
-import { subtleDSA } from './jwa.js'
-import { clone, stringToArrayBuffer } from './utils.js'
 import { base64urlEncode } from './base64.node.js'
+import { subtleDSAFromJWK } from './jwa.js'
+import { stringToArrayBuffer } from './utils.js'
+import webcrypto from './webcrypto.node.js'
 
 /**
  * @param {CryptoKey} cryptoKey
@@ -20,7 +20,7 @@ export async function importJWK (jwk, algorithm) {
   return webcrypto.subtle.importKey(
     'jwk',
     jwk,
-    subtleDSA(algorithm),
+    subtleDSAFromJWK(algorithm, jwk),
     true,
     keyOps(jwk)
   )
@@ -31,30 +31,40 @@ export async function importJWK (jwk, algorithm) {
  * @returns {JsonWebKey}
  */
 export function privateToPublic (jwk) {
-  jwk = clone(jwk)
   switch (jwk.kty) {
     case 'oct':
-      delete jwk.k
-      jwk.key_ops = []
-      break
+      return { key_ops: [], kty: jwk.kty, alg: jwk.alg }
     case 'RSA':
-      delete jwk.d
-      delete jwk.p
-      delete jwk.q
-      delete jwk.dp
-      delete jwk.dq
-      delete jwk.qi
-      jwk.key_ops = ['verify']
-      break
+      return {
+        key_ops: ['verify'],
+        kty: jwk.kty,
+        n: jwk.n,
+        e: jwk.e,
+        alg: jwk.alg
+      }
+    // TODO: EdDSA
+    /* c8 ignore next 8 */
+    case 'OKP':
+      return {
+        key_ops: ['verify'],
+        crv: 'Ed25519',
+        x: jwk.x,
+        kty: jwk.kty,
+        alg: jwk.alg
+      }
     case 'EC':
-      delete jwk.d
-      jwk.key_ops = ['verify']
-      break
+      return {
+        key_ops: ['verify'],
+        kty: jwk.kty,
+        x: jwk.x,
+        y: jwk.y,
+        crv: jwk.crv,
+        alg: jwk.alg
+      }
     /* c8 ignore next 2 */
     default:
       throw new UnsupportedKeyType(jwk.kty)
   }
-  return jwk
 }
 
 /**
@@ -65,6 +75,9 @@ function keyOps (jwk) {
   switch (jwk.kty) {
     case 'oct':
       return jwk.k ? ['sign', 'verify'] : []
+    // TODO: EdDSA
+    /* c8 ignore next 1 */
+    case 'OKP':
     case 'EC':
     case 'RSA':
       return jwk.d ? ['sign'] : ['verify']
@@ -76,28 +89,33 @@ function keyOps (jwk) {
 /**
  * @param {JsonWebKey} jwk
  */
-export async function generateKid (jwk) {
+function jwkThumbprintParts (jwk) {
   // Order of the keys matter
-  /** @type {JsonWebKey} */
-  let strippedJWK
   switch (jwk.kty) {
     case 'oct':
-      strippedJWK = { k: jwk.k, kty: jwk.kty }
-      break
+      return { k: jwk.k, kty: jwk.kty }
     case 'RSA':
-      strippedJWK = { e: jwk.e, kty: jwk.kty, n: jwk.n }
-      break
+      return { e: jwk.e, kty: jwk.kty, n: jwk.n }
     case 'EC':
-      strippedJWK = { crv: jwk.crv, kty: jwk.kty, x: jwk.x, y: jwk.y }
-      break
+      return { crv: jwk.crv, kty: jwk.kty, x: jwk.x, y: jwk.y }
+    // TODO: EdDSA
+    /* c8 ignore next 2 */
+    case 'OKP':
+      return { crv: jwk.crv, kty: jwk.kty, x: jwk.x }
     /* c8 ignore next 2 */
     default:
       throw new UnsupportedKeyType(jwk.kty)
   }
+}
+
+/**
+ * @param {JsonWebKey} jwk
+ */
+export async function generateKid (jwk) {
   return base64urlEncode(
     await webcrypto.subtle.digest(
       'SHA-256',
-      stringToArrayBuffer(JSON.stringify(strippedJWK))
+      stringToArrayBuffer(JSON.stringify(jwkThumbprintParts(jwk)))
     )
   )
 }

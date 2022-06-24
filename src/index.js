@@ -1,13 +1,14 @@
-export * as jwt from './jawt.js'
-export * from './key.js'
-export * from './key-store.js'
 export * from './generate.js'
+export * as jwt from './jawt.js'
+export * from './key-store.js'
+export * from './key.js'
 export {
   InvalidModulusLength,
+  supportedAlgorithms,
   UnsupportedAlgorithm,
-  supportedAlgorithms
+  UnsupportedEdDSACurve
 } from './lib/jwa.js'
 export { UnsupportedKeyType } from './lib/jwk.js'
 export { InvalidSigningKey } from './lib/jws.js'
-export { TokenExpired, NotBefore } from './lib/jwt.standard-claims.js'
 export * from './lib/jwt.errors.js'
+export { NotBefore, TokenExpired } from './lib/jwt.standard-claims.js'

@@ -1,9 +1,9 @@
+import { isKeyStore } from './key-store.js'
 import * as jwt from './lib/jwt.js'
 import {
   attachStandardClaims,
   verifyStandardClaims
 } from './lib/jwt.standard-claims.js'
-import { isKeyStore } from './key-store.js'
 
 /** @typedef {import('./lib/jwt.standard-claims.js').AttachStandardClaimsParams} AttachStandardClaimsParams */
 /** @typedef {import('./lib/jwt.standard-claims.js').VerifyStandardClaimsParams} VerifyStandardClaimsParams */
@@ -38,6 +38,7 @@ export async function verify (token, keyStore, options) {
      * @param {import('./lib/jwt.js').JWTHeader} header
      * @returns {Generator<[string, CryptoKey], void, void>}
      */
+    // dprint-ignore
     function * getKeys (header) {
       const key = keyStore.get(header.kid)
       if (key) {

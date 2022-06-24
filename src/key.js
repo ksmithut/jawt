@@ -1,14 +1,14 @@
-import webcrypto from './lib/webcrypto.node.js'
-import { clone, stringToArrayBuffer } from './lib/utils.js'
-import { cryptoKeyToPEM } from './lib/pem.js'
 import { isAlgorithm, UnsupportedAlgorithm } from './lib/jwa.js'
 import {
   exportJWK,
+  generateKid,
   importJWK,
-  privateToPublic,
-  generateKid
+  privateToPublic
 } from './lib/jwk.js'
 import { InvalidSigningKey } from './lib/jws.js'
+import { cryptoKeyToPEM } from './lib/pem.js'
+import { clone, stringToArrayBuffer } from './lib/utils.js'
+import webcrypto from './lib/webcrypto.node.js'
 
 /**
  * @typedef {Awaited<ReturnType<createKeyFromCryptoKey>>} Key
@@ -35,11 +35,11 @@ export async function createKeyFromCryptoKey (cryptoKey, options) {
   const alg = options.alg
   const jwk = await exportJWK(cryptoKey)
   const publicJWK = privateToPublic(jwk)
-  const kid =
-    options.kid ??
+  const kid = options.kid ??
     (await generateKid(cryptoKey.type === 'secret' ? jwk : publicJWK))
-  const verifyKey =
-    cryptoKey.type === 'private' ? await importJWK(publicJWK, alg) : cryptoKey
+  const verifyKey = cryptoKey.type === 'private'
+    ? await importJWK(publicJWK, alg)
+    : cryptoKey
   const key = Object.freeze({
     kid () {
       return kid

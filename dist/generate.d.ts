@@ -3,9 +3,11 @@
  * @param {JWAlgorithm} alg
  * @param {object} [options]
  * @param {number} [options.modulusLength]
+ * @param {import('./lib/jwa.js').EdCurve} [options.curve]
  */
 export function generateCryptoKey(alg: JWAlgorithm, options?: {
     modulusLength?: number | undefined;
+    curve?: import("./lib/jwa.js").EdCurve | undefined;
 } | undefined): Promise<CryptoKey>;
 export type JWAlgorithm = import('./lib/jwa.js').JWAlgorithm;
 /**

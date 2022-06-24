@@ -122,7 +122,7 @@ welcome.
 Creates a KeyStore to be used for signing and verifying.
 
 ```js
-import { generate, createKeyStore } from 'jawt'
+import { createKeyStore, generate } from 'jawt'
 
 const keys = await Promise.all([generate('ES512'), generate('RS256')])
 const keyStore = createKeyStore(keys)
@@ -139,7 +139,7 @@ keyStore.privateJWKS() // { keys: [] } returns the private version of the keys i
 Creates a KeyStore from a JSON Web Key Set
 
 ```js
-import { generate, createKeyStore, createKeyStoreFromJWKS } from 'jawt'
+import { createKeyStore, createKeyStoreFromJWKS, generate } from 'jawt'
 
 const keys = await Promise.all([generate('ES512'), generate('RS256')])
 const keyStore = createKeyStore(keys)
@@ -223,7 +223,7 @@ it fails the signature or any of the claims, it will reject the promise with an
 error that will have a `.code` property that tells you which claim failed.
 
 ```js
-import { jwt, createKeyStore, generate } from 'jawt'
+import { createKeyStore, generate, jwt } from 'jawt'
 
 const key1 = await generate('HS256')
 const key2 = await generate('ES512')
@@ -301,15 +301,13 @@ you an object that is either `{ success: true, payload }` or
 `.error` depending on what you checked for.
 
 ```js
+import { createKeyStore, errors, generate, jwt } from 'jawt'
 import { setTimeout } from 'timers/promises'
-import { jwt, createKeyStore, generate, errors } from 'jawt'
 
 const key = await generate('HS256')
 const keyStore = createKeyStore([key])
 
-const token = await jwt.sign({}, keyStore, {
-  expiresIn: 1
-})
+const token = await jwt.sign({}, keyStore, { expiresIn: 1 })
 
 await setTimeout(2 * 1000)
 

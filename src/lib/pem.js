@@ -1,6 +1,6 @@
-import webcrypto from './webcrypto.node.js'
 import { base64encode } from './base64.node.js'
 import { splitEvery } from './utils.js'
+import webcrypto from './webcrypto.node.js'
 
 const PRIVATE_KEY_HEADER = '-----BEGIN PRIVATE KEY-----'
 const PRIVATE_KEY_FOOTER = '-----END PRIVATE KEY-----'
@@ -19,7 +19,8 @@ export async function cryptoKeyToPEM (cryptoKey) {
         PRIVATE_KEY_HEADER,
         ...splitEvery(encodedKey, 64),
         PRIVATE_KEY_FOOTER
-      ].join('\n')
+      ]
+        .join('\n')
     }
     case 'public': {
       const exportedKey = await webcrypto.subtle.exportKey('spki', cryptoKey)
@@ -28,7 +29,8 @@ export async function cryptoKeyToPEM (cryptoKey) {
         PUBLIC_KEY_HEADER,
         ...splitEvery(encodedKey, 64),
         PUBLIC_KEY_FOOTER
-      ].join('\n')
+      ]
+        .join('\n')
     }
     /* c8 ignore next 2 */
     default:

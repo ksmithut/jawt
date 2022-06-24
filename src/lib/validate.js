@@ -71,9 +71,8 @@ export function isDate (value) {
  * @return {value is number}
  */
 export function isNumber (value) {
-  return (
-    typeof value === 'number' && !Number.isNaN(value) && Number.isFinite(value)
-  )
+  return (typeof value === 'number' && !Number.isNaN(value) &&
+    Number.isFinite(value))
 }
 
 /**

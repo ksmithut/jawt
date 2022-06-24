@@ -1,20 +1,20 @@
 import {
-  base64urlEncode,
   base64urlDecode,
-  base64urlDecodeToArrayBuffer
+  base64urlDecodeToArrayBuffer,
+  base64urlEncode
 } from './base64.node.js'
-import { stringToArrayBuffer } from './utils.js'
-import * as v from './validate.js'
-import * as jws from './jws.js'
 import { isAlgorithm } from './jwa.js'
+import * as jws from './jws.js'
 import {
   AlgorithmMismatch,
-  InvalidJSON,
   InvalidAlgorithm,
+  InvalidJSON,
   InvalidKeyId,
   InvalidSignature,
   MalformedJWT
 } from './jwt.errors.js'
+import { stringToArrayBuffer } from './utils.js'
+import * as v from './validate.js'
 
 /**
  * @param {object & { alg: import('./jwa.js').JWAlgorithm }} header
@@ -22,8 +22,7 @@ import {
  * @param {CryptoKey} cryptoKey
  */
 export async function signJWT (header, payload, cryptoKey) {
-  const body =
-    base64urlEncode(JSON.stringify(header)) +
+  const body = base64urlEncode(JSON.stringify(header)) +
     '.' +
     base64urlEncode(JSON.stringify(payload))
   const signature = base64urlEncode(
