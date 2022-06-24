@@ -2,7 +2,7 @@
   "name": "jawt",
   "description": "A WebCrypto based JSON Web Token implementation without dependencies",
   "license": "MIT",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "main": "./src/index.js",
   "exports": "./src/index.js",
   "type": "module",
