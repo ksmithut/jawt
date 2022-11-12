@@ -34,14 +34,14 @@
     "prepare": "husky install || true"
   },
   "devDependencies": {
-    "@types/node": "^18.0.0",
-    "c8": "^7.11.3",
-    "dprint": "^0.29.1",
-    "husky": "^8.0.1",
+    "@types/node": "^18.11.9",
+    "c8": "^7.12.0",
+    "dprint": "^0.32.2",
+    "husky": "^8.0.2",
     "jsonwebtoken": "^8.5.1",
-    "lint-staged": "^13.0.2",
+    "lint-staged": "^13.0.3",
     "standard": "^17.0.0",
     "tap": "^16.3.0",
-    "typescript": "^4.7.4"
+    "typescript": "^4.8.4"
   }
 }

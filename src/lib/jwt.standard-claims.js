@@ -74,7 +74,7 @@ export function assertStandardClaims (claims) {
 
 /**
  * @param {import('./jwt.js').JWTPayload} payload
- * @param {AttachStandardClaimsParams} [params]
+ * @param {AttachStandardClaimsParams} params
  * @returns {PayloadWithStandardClaims}
  */
 export function attachStandardClaims (
@@ -125,7 +125,7 @@ export function attachStandardClaims (
 
 /**
  * @param {import('./jwt.js').JWTPayload} payload
- * @param {VerifyStandardClaimsParams} [params]
+ * @param {VerifyStandardClaimsParams} params
  */
 export function verifyStandardClaims (
   payload,
