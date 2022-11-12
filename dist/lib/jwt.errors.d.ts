@@ -16,7 +16,7 @@ export class InvalidClaim extends JsonWebTokenError {
     constructor(claim: string, message: string, givenValue: unknown, expectedValue?: unknown);
     claim: string;
     givenValue: unknown;
-    expectedValue: unknown;
+    expectedValue: {} | undefined;
 }
 export class MalformedJWT extends JsonWebTokenError {
     constructor(message?: string);

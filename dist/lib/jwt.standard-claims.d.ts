@@ -17,10 +17,10 @@ export function assertStandardClaims(claims: import('./jwt.js').JWTPayload): Pay
  */
 /**
  * @param {import('./jwt.js').JWTPayload} payload
- * @param {AttachStandardClaimsParams} [params]
+ * @param {AttachStandardClaimsParams} params
  * @returns {PayloadWithStandardClaims}
  */
-export function attachStandardClaims(payload: import('./jwt.js').JWTPayload, { clock, issuer, subject, audience, expiresAt, expiresIn, notBefore, issuedAt, jwtId }?: AttachStandardClaimsParams | undefined): PayloadWithStandardClaims;
+export function attachStandardClaims(payload: import('./jwt.js').JWTPayload, { clock, issuer, subject, audience, expiresAt, expiresIn, notBefore, issuedAt, jwtId }?: AttachStandardClaimsParams): PayloadWithStandardClaims;
 /**
  * @typedef {object} VerifyStandardClaimsParams
  * @property {Date} [clock = new Date()] Date to use for all clock calculations
@@ -33,9 +33,9 @@ export function attachStandardClaims(payload: import('./jwt.js').JWTPayload, { c
  */
 /**
  * @param {import('./jwt.js').JWTPayload} payload
- * @param {VerifyStandardClaimsParams} [params]
+ * @param {VerifyStandardClaimsParams} params
  */
-export function verifyStandardClaims(payload: import('./jwt.js').JWTPayload, { clock, clockTolerance, maxAge, issuer, subject, audience, jwtId }?: VerifyStandardClaimsParams | undefined): PayloadWithStandardClaims;
+export function verifyStandardClaims(payload: import('./jwt.js').JWTPayload, { clock, clockTolerance, maxAge, issuer, subject, audience, jwtId }?: VerifyStandardClaimsParams): PayloadWithStandardClaims;
 export class TokenExpired extends JsonWebTokenError {
     /**
      * @param {Date} expiredAt
